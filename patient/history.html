@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>歷史記錄 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      background: white;
+      position: sticky;
+      top: 64px;
+      z-index: 50;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      margin: -16px -16px 16px -16px;
+    }
+    
+    .filter-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .filter-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid #E5E7EB;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+    
+    .filter-tab.active {
+      background: #3B82F6;
+      border-color: #3B82F6;
+      color: white;
+    }
+    
+    .summary-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .summary-title {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+    
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .summary-stat {
+      text-align: center;
+    }
+    
+    .summary-stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .summary-stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #E5E7EB;
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+    }
+    
+    .timeline-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .timeline-dot {
+      position: absolute;
+      left: -20px;
+      top: 6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #3B82F6;
+      z-index: 1;
+    }
+    
+    .timeline-dot.high {
+      border-color: #EF4444;
+    }
+    
+    .timeline-dot.medium {
+      border-color: #F59E0B;
+    }
+    
+    .timeline-dot.low {
+      border-color: #10B981;
+    }
+    
+    .record-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .record-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .record-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    
+    .record-card-date {
+      font-size: 14px;
+      color: #6B7280;
+      font-weight: 500;
+    }
+    
+    .record-card-body {
+      margin-bottom: 12px;
+    }
+    
+    .record-score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .record-score {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    
+    .record-anomalies {
+      font-size: 14px;
+      color: #374151;
+    }
+    
+    .record-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #9CA3AF;
+    }
+    
+    .trend-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .trend-improving {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .trend-stable {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+    
+    .trend-worsening {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9CA3AF;
+    }
+    
+    .empty-state-icon {
+      font-size: 80px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="history.back()">←</button>
+      <h1 class="header-title">歷史記錄</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content" style="padding-top: 0;">
+      <!-- 篩選標籤 -->
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">全部</button>
+        <button class="filter-tab" data-filter="high">高風險</button>
+        <button class="filter-tab" data-filter="medium">中風險</button>
+        <button class="filter-tab" data-filter="low">低風險</button>
+        <button class="filter-tab" data-filter="reviewed">已審核</button>
+      </div>
+      
+      <!-- 統計摘要 -->
+      <div class="summary-card fade-in" id="summaryCard">
+        <div class="summary-title">整體統計</div>
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <div class="summary-stat-value" id="totalCount">0</div>
+            <div class="summary-stat-label">總記錄數</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-stat-value" id="avgScore">--</div>
+            <div class="summary-stat-label">平均評分</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-stat-value" id="lastCheck">--</div>
+            <div class="summary-stat-label">上次檢測</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 時間軸記錄 -->
+      <div class="timeline" id="timeline">
+        <!-- 動態載入 -->
+      </div>
+      
+      <!-- 空狀態 -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-state-icon">📊</div>
+        <div style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+          尚無檢測記錄
+        </div>
+        <div style="font-size: 14px; margin-bottom: 24px;">
+          開始上傳影像進行口腔健康檢測
+        </div>
+        <button class="btn btn-primary" onclick="window.location.href='upload.html'">
+          立即上傳
+        </button>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item">
+        <div class="nav-icon">📸</div>
+        <div>上傳</div>
+      </a>
+      <a href="history.html" class="nav-item active">
+        <div class="nav-icon">📊</div>
+        <div>記錄</div>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    let allAnalyses = [];
+    let currentFilter = 'all';
+    
+    // 載入數據
+    function loadData() {
+      allAnalyses = AnalysisManager.getUserAnalyses(currentUser.id);
+      
+      if (allAnalyses.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      displaySummary(allAnalyses);
+      displayTimeline(allAnalyses);
+    }
+    
+    // 顯示統計摘要
+    function displaySummary(analyses) {
+      const totalCount = analyses.length;
+      const avgScore = totalCount > 0 
+        ? (analyses.reduce((sum, a) => sum + a.riskScore, 0) / totalCount).toFixed(1)
+        : 0;
+      const lastCheck = totalCount > 0 
+        ? Utils.getRelativeTime(analyses[0].analyzedAt)
+        : '--';
+      
+      document.getElementById('totalCount').textContent = totalCount;
+      document.getElementById('avgScore').textContent = avgScore;
+      document.getElementById('lastCheck').textContent = lastCheck;
+    }
+    
+    // 顯示時間軸
+    function displayTimeline(analyses) {
+      const timeline = document.getElementById('timeline');
+      
+      if (analyses.length === 0) {
+        timeline.innerHTML = '';
+        return;
+      }
+      
+      timeline.innerHTML = analyses.map((analysis, index) => {
+        const colors = {
+          low: '#10B981',
+          medium: '#F59E0B',
+          high: '#EF4444'
+        };
+        
+        const icons = {
+          low: '✅',
+          medium: '⚡',
+          high: '⚠️'
+        };
+        
+        // 計算趨勢
+        let trendHtml = '';
+        if (index < analyses.length - 1) {
+          const prevScore = analyses[index + 1].riskScore;
+          const currentScore = analysis.riskScore;
+          const diff = currentScore - prevScore;
+          
+          if (diff < -1) {
+            trendHtml = '<span class="trend-indicator trend-improving">📉 改善中</span>';
+          } else if (diff > 1) {
+            trendHtml = '<span class="trend-indicator trend-worsening">📈 需注意</span>';
+          } else {
+            trendHtml = '<span class="trend-indicator trend-stable">➡️ 穩定</span>';
+          }
+        }
+        
+        return `
+          <div class="timeline-item" style="animation: slideUp 0.3s ease-out ${index * 0.1}s both;">
+            <div class="timeline-dot ${analysis.riskLevel}"></div>
+            <div class="record-card" onclick="viewReport('${analysis.id}')">
+              <div class="record-card-header">
+                <div class="record-card-date">
+                  ${Utils.formatDateTime(analysis.analyzedAt, 'short')}
+                </div>
+                <span class="badge badge-${analysis.riskLevel}">
+                  ${icons[analysis.riskLevel]} ${analysis.riskLevelName}
+                </span>
+              </div>
+              <div class="record-card-body">
+                <div class="record-score-row">
+                  <div class="record-score" style="color: ${colors[analysis.riskLevel]};">
+                    ${analysis.riskScore}
+                  </div>
+                  <div class="record-anomalies">
+                    檢測到 ${analysis.anomalies.length} 項異常
+                  </div>
+                </div>
+                ${trendHtml}
+              </div>
+              <div class="record-card-footer">
+                <span>${analysis.status === 'reviewed' ? '✓ 已審核' : '⏳ 待審核'}</span>
+                <span style="color: ${colors[analysis.riskLevel]};">查看報告 →</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示空狀態
+    function showEmptyState() {
+      document.getElementById('summaryCard').style.display = 'none';
+      document.getElementById('timeline').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+    
+    // 篩選功能
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        currentFilter = tab.dataset.filter;
+        applyFilter();
+      });
+    });
+    
+    // 應用篩選
+    function applyFilter() {
+      let filteredAnalyses = allAnalyses;
+      
+      if (currentFilter !== 'all') {
+        if (currentFilter === 'reviewed') {
+          filteredAnalyses = allAnalyses.filter(a => a.status === 'reviewed');
+        } else {
+          filteredAnalyses = allAnalyses.filter(a => a.riskLevel === currentFilter);
+        }
+      }
+      
+      displayTimeline(filteredAnalyses);
+      
+      if (filteredAnalyses.length === 0) {
+        document.getElementById('timeline').innerHTML = `
+          <div class="text-center" style="padding: 40px 20px; color: #9CA3AF;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+            <div>無符合條件的記錄</div>
+          </div>
+        `;
+      }
+    }
+    
+    // 查看報告
+    function viewReport(analysisId) {
+      window.location.href = `report.html?id=${analysisId}`;
+    }
+    
+    // 頁面載入時執行
+    loadData();
+  </script>
+</body>
+</html>

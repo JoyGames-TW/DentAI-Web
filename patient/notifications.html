@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>通知中心 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .notifications-header {
+      background: white;
+      padding: 16px;
+      border-bottom: 1px solid #E5E7EB;
+      position: sticky;
+      top: 64px;
+      z-index: 50;
+      margin: -16px -16px 16px -16px;
+    }
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .unread-count {
+      font-size: 14px;
+      color: #6B7280;
+    }
+    
+    .mark-all-read {
+      font-size: 14px;
+      color: #3B82F6;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      padding: 4px 8px;
+    }
+    
+    .mark-all-read:hover {
+      text-decoration: underline;
+    }
+    
+    .notification-item {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      position: relative;
+      border-left: 4px solid transparent;
+    }
+    
+    .notification-item.unread {
+      background: #EFF6FF;
+      border-left-color: #3B82F6;
+    }
+    
+    .notification-item:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .notification-icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+    
+    .notification-content {
+      flex: 1;
+    }
+    
+    .notification-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .notification-message {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    
+    .notification-time {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    
+    .notification-priority {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .notification-priority.high {
+      background: #EF4444;
+    }
+    
+    .notification-priority.medium {
+      background: #F59E0B;
+    }
+    
+    .notification-priority.low {
+      background: #10B981;
+    }
+    
+    .notification-badge {
+      background: #3B82F6;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    
+    .filter-chips::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 16px;
+      border: 2px solid #E5E7EB;
+      background: white;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+    
+    .filter-chip.active {
+      background: #3B82F6;
+      border-color: #3B82F6;
+      color: white;
+    }
+    
+    .empty-notifications {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9CA3AF;
+    }
+    
+    .empty-icon {
+      font-size: 80px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .notification-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .notification-action-btn {
+      flex: 1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .notification-action-btn.primary {
+      background: #3B82F6;
+      color: white;
+    }
+    
+    .notification-action-btn.secondary {
+      background: #F3F4F6;
+      color: #374151;
+    }
+    
+    .notification-action-btn:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="history.back()">←</button>
+      <h1 class="header-title">通知中心</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content" style="padding-top: 0;">
+      <!-- 通知標題列 -->
+      <div class="notifications-header">
+        <div class="header-actions">
+          <div class="unread-count">
+            未讀：<strong id="unreadCount">0</strong> 則
+          </div>
+          <button class="mark-all-read" id="markAllReadBtn">
+            全部標記為已讀
+          </button>
+        </div>
+      </div>
+      
+      <!-- 篩選選項 -->
+      <div class="filter-chips">
+        <button class="filter-chip active" data-filter="all">全部</button>
+        <button class="filter-chip" data-filter="unread">未讀</button>
+        <button class="filter-chip" data-filter="high_risk_alert">高風險警示</button>
+        <button class="filter-chip" data-filter="review_completed">審核完成</button>
+        <button class="filter-chip" data-filter="system">系統通知</button>
+      </div>
+      
+      <!-- 通知列表 -->
+      <div id="notificationsList">
+        <!-- 動態載入 -->
+      </div>
+      
+      <!-- 空狀態 -->
+      <div class="empty-notifications" id="emptyState" style="display: none;">
+        <div class="empty-icon">🔔</div>
+        <div style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+          沒有通知
+        </div>
+        <div style="font-size: 14px;">
+          目前沒有任何通知訊息
+        </div>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item">
+        <div class="nav-icon">📸</div>
+        <div>上傳</div>
+      </a>
+      <a href="history.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>記錄</div>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    let allNotifications = [];
+    let currentFilter = 'all';
+    
+    // 通知類型圖示與顏色配置
+    const notificationConfig = {
+      high_risk_alert: {
+        icon: '⚠️',
+        color: '#EF4444',
+        title: '高風險警示'
+      },
+      review_completed: {
+        icon: '✅',
+        color: '#10B981',
+        title: '審核完成'
+      },
+      system: {
+        icon: 'ℹ️',
+        color: '#3B82F6',
+        title: '系統通知'
+      },
+      appointment_reminder: {
+        icon: '📅',
+        color: '#F59E0B',
+        title: '預約提醒'
+      }
+    };
+    
+    // 載入通知
+    function loadNotifications() {
+      allNotifications = NotificationManager.getUserNotifications(currentUser.id);
+      
+      if (allNotifications.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      updateUnreadCount();
+      displayNotifications(allNotifications);
+    }
+    
+    // 更新未讀數量
+    function updateUnreadCount() {
+      const unreadCount = NotificationManager.getUnreadCount(currentUser.id);
+      document.getElementById('unreadCount').textContent = unreadCount;
+    }
+    
+    // 顯示通知列表
+    function displayNotifications(notifications) {
+      const list = document.getElementById('notificationsList');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (notifications.length === 0) {
+        list.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      list.innerHTML = notifications.map((notif, index) => {
+        const config = notificationConfig[notif.type] || notificationConfig.system;
+        const priorityClass = notif.priority || 'medium';
+        
+        return `
+          <div class="notification-item ${notif.isRead ? '' : 'unread'}" 
+               onclick="handleNotificationClick('${notif.id}')"
+               style="animation: slideUp 0.3s ease-out ${index * 0.05}s both;">
+            <div style="display: flex; gap: 12px;">
+              <div class="notification-icon">${config.icon}</div>
+              <div class="notification-content">
+                <div class="notification-title">
+                  ${notif.title}
+                  ${!notif.isRead ? '<span class="notification-badge">新</span>' : ''}
+                </div>
+                <div class="notification-message">${notif.message}</div>
+                <div class="notification-time">
+                  ${Utils.getRelativeTime(notif.createdAt)}
+                </div>
+                ${notif.relatedId ? `
+                  <div class="notification-actions">
+                    <button class="notification-action-btn primary" 
+                            onclick="event.stopPropagation(); viewRelatedReport('${notif.relatedId}')">
+                      查看報告
+                    </button>
+                    <button class="notification-action-btn secondary" 
+                            onclick="event.stopPropagation(); dismissNotification('${notif.id}')">
+                      關閉
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="notification-priority ${priorityClass}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示空狀態
+    function showEmptyState() {
+      document.getElementById('notificationsList').innerHTML = '';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+    
+    // 處理通知點擊
+    function handleNotificationClick(notificationId) {
+      // 標記為已讀
+      NotificationManager.markAsRead(notificationId);
+      updateUnreadCount();
+      
+      // 重新載入以更新樣式
+      const notif = allNotifications.find(n => n.id === notificationId);
+      if (notif && notif.relatedId) {
+        viewRelatedReport(notif.relatedId);
+      }
+    }
+    
+    // 查看相關報告
+    function viewRelatedReport(analysisId) {
+      window.location.href = `report.html?id=${analysisId}`;
+    }
+    
+    // 關閉通知
+    function dismissNotification(notificationId) {
+      NotificationManager.markAsRead(notificationId);
+      updateUnreadCount();
+      loadNotifications();
+      Utils.showToast('已標記為已讀', 'success');
+    }
+    
+    // 全部標記為已讀
+    document.getElementById('markAllReadBtn').addEventListener('click', () => {
+      NotificationManager.markAllAsRead(currentUser.id);
+      updateUnreadCount();
+      loadNotifications();
+      Utils.showToast('已全部標記為已讀', 'success');
+    });
+    
+    // 篩選功能
+    const filterChips = document.querySelectorAll('.filter-chip');
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        
+        currentFilter = chip.dataset.filter;
+        applyFilter();
+      });
+    });
+    
+    // 應用篩選
+    function applyFilter() {
+      let filteredNotifications = allNotifications;
+      
+      if (currentFilter === 'unread') {
+        filteredNotifications = allNotifications.filter(n => !n.isRead);
+      } else if (currentFilter !== 'all') {
+        filteredNotifications = allNotifications.filter(n => n.type === currentFilter);
+      }
+      
+      displayNotifications(filteredNotifications);
+    }
+    
+    // 頁面載入時執行
+    loadNotifications();
+    
+    // 每 30 秒刷新一次
+    setInterval(() => {
+      const currentScroll = window.scrollY;
+      loadNotifications();
+      if (currentFilter !== 'all') {
+        applyFilter();
+      }
+      window.scrollTo(0, currentScroll);
+    }, 30000);
+  </script>
+</body>
+</html>

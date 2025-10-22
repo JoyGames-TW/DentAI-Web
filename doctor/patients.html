@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>患者管理 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .search-bar {
+      background: white;
+      padding: 0 0 16px 0;
+      margin-bottom: 16px;
+    }
+    
+    .search-input-container {
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px 40px 12px 16px;
+      border: 1px solid #D1D5DB;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #3B82F6;
+    }
+    
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #9CA3AF;
+    }
+    
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: #6B7280;
+    }
+    
+    .patient-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .patient-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .patient-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .patient-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #60A5FA, #3B82F6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .patient-info {
+      flex: 1;
+    }
+    
+    .patient-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+    
+    .patient-id {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    
+    .health-score {
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #F3F4F6;
+    }
+    
+    .health-score-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    
+    .health-score-label {
+      font-size: 10px;
+      color: #6B7280;
+      text-transform: uppercase;
+    }
+    
+    .patient-stats {
+      display: flex;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #F3F4F6;
+    }
+    
+    .patient-stat {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .patient-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .patient-stat-label {
+      font-size: 11px;
+      color: #6B7280;
+      margin-top: 2px;
+    }
+    
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0;
+      margin-bottom: 16px;
+    }
+    
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 16px;
+      border: 1px solid #D1D5DB;
+      background: white;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+    
+    .filter-chip.active {
+      background: #3B82F6;
+      color: white;
+      border-color: #3B82F6;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <div style="width: 44px;"></div>
+      <h1 class="header-title">患者管理</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 搜尋列 -->
+      <div class="search-bar">
+        <div class="search-input-container">
+          <input 
+            type="text" 
+            class="search-input" 
+            id="searchInput"
+            placeholder="搜尋患者姓名或 ID..."
+            oninput="handleSearch()">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      
+      <!-- 統計概覽 -->
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-value" id="totalPatients">0</div>
+          <div class="stat-label">總患者數</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="highRiskPatients">0</div>
+          <div class="stat-label">高風險患者</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="activePatients">0</div>
+          <div class="stat-label">活躍患者</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="newPatients">0</div>
+          <div class="stat-label">本月新增</div>
+        </div>
+      </div>
+      
+      <!-- 篩選條件 -->
+      <div class="filter-chips">
+        <div class="filter-chip active" data-filter="all" onclick="applyFilter('all')">
+          全部患者
+        </div>
+        <div class="filter-chip" data-filter="high-risk" onclick="applyFilter('high-risk')">
+          高風險
+        </div>
+        <div class="filter-chip" data-filter="active" onclick="applyFilter('active')">
+          活躍中
+        </div>
+        <div class="filter-chip" data-filter="new" onclick="applyFilter('new')">
+          本月新增
+        </div>
+      </div>
+      
+      <!-- 患者列表 -->
+      <div id="patientList">
+        <!-- 動態載入 -->
+      </div>
+      
+      <!-- 空狀態 -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div style="font-size: 60px; margin-bottom: 16px;">👥</div>
+        <div style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+          沒有找到患者
+        </div>
+        <div style="font-size: 14px;">
+          請嘗試其他搜尋條件
+        </div>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="dashboard.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>儀表板</div>
+      </a>
+      <a href="review.html" class="nav-item">
+        <div class="nav-icon">📋</div>
+        <div>審核</div>
+      </a>
+      <a href="patients.html" class="nav-item active">
+        <div class="nav-icon">👥</div>
+        <div>患者</div>
+      </a>
+      <a href="doctor-profile.html" class="nav-item">
+        <div class="nav-icon">👨‍⚕️</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = '../patient/login.html';
+    }
+    
+    let currentFilter = 'all';
+    let searchQuery = '';
+    
+    // 獲取所有患者數據
+    function getPatientData() {
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      const allImages = StorageManager.get(StorageManager.KEYS.IMAGES) || [];
+      
+      // 按用戶分組
+      const patientMap = new Map();
+      
+      allAnalyses.forEach(analysis => {
+        if (!patientMap.has(analysis.userId)) {
+          patientMap.set(analysis.userId, {
+            id: analysis.userId,
+            name: analysis.userName,
+            analyses: [],
+            images: []
+          });
+        }
+        patientMap.get(analysis.userId).analyses.push(analysis);
+      });
+      
+      // 添加影像數據
+      allImages.forEach(image => {
+        if (patientMap.has(image.userId)) {
+          patientMap.get(image.userId).images.push(image);
+        }
+      });
+      
+      // 計算每個患者的統計數據
+      const patients = Array.from(patientMap.values()).map(patient => {
+        const analyses = patient.analyses;
+        const latestAnalysis = analyses.sort((a, b) => 
+          new Date(b.analyzedAt) - new Date(a.analyzedAt)
+        )[0];
+        
+        const avgScore = analyses.length > 0
+          ? Math.round(analyses.reduce((sum, a) => sum + a.riskScore, 0) / analyses.length)
+          : 0;
+        
+        const highRiskCount = analyses.filter(a => a.riskLevel === 'high').length;
+        const reviewedCount = analyses.filter(a => a.status === 'reviewed').length;
+        
+        // 判斷是否為活躍患者（30天內有上傳）
+        const lastUploadDate = latestAnalysis ? new Date(latestAnalysis.analyzedAt) : null;
+        const daysSinceLastUpload = lastUploadDate 
+          ? Math.floor((Date.now() - lastUploadDate.getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+        
+        // 判斷是否為本月新增
+        const firstUploadDate = analyses.length > 0
+          ? new Date(Math.min(...analyses.map(a => new Date(a.analyzedAt).getTime())))
+          : null;
+        const isNewThisMonth = firstUploadDate
+          ? firstUploadDate.getMonth() === new Date().getMonth() &&
+            firstUploadDate.getFullYear() === new Date().getFullYear()
+          : false;
+        
+        return {
+          ...patient,
+          latestAnalysis,
+          avgScore,
+          highRiskCount,
+          reviewedCount,
+          totalRecords: analyses.length,
+          isActive: daysSinceLastUpload <= 30,
+          isNew: isNewThisMonth,
+          daysSinceLastUpload,
+          healthScore: 100 - avgScore // 健康分數與風險分數相反
+        };
+      });
+      
+      return patients;
+    }
+    
+    // 載入統計數據
+    function loadStats() {
+      const patients = getPatientData();
+      
+      document.getElementById('totalPatients').textContent = patients.length;
+      document.getElementById('highRiskPatients').textContent = 
+        patients.filter(p => p.latestAnalysis && p.latestAnalysis.riskLevel === 'high').length;
+      document.getElementById('activePatients').textContent = 
+        patients.filter(p => p.isActive).length;
+      document.getElementById('newPatients').textContent = 
+        patients.filter(p => p.isNew).length;
+    }
+    
+    // 顯示患者列表
+    function displayPatients() {
+      let patients = getPatientData();
+      
+      // 應用篩選
+      if (currentFilter === 'high-risk') {
+        patients = patients.filter(p => p.latestAnalysis && p.latestAnalysis.riskLevel === 'high');
+      } else if (currentFilter === 'active') {
+        patients = patients.filter(p => p.isActive);
+      } else if (currentFilter === 'new') {
+        patients = patients.filter(p => p.isNew);
+      }
+      
+      // 應用搜尋
+      if (searchQuery) {
+        patients = patients.filter(p => 
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.id.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+      
+      // 按最近活動排序
+      patients.sort((a, b) => {
+        if (!a.latestAnalysis) return 1;
+        if (!b.latestAnalysis) return -1;
+        return new Date(b.latestAnalysis.analyzedAt) - new Date(a.latestAnalysis.analyzedAt);
+      });
+      
+      const container = document.getElementById('patientList');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (patients.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      container.innerHTML = patients.map((patient, index) => {
+        const scoreColor = patient.healthScore >= 70 ? '#10B981' :
+                          patient.healthScore >= 40 ? '#F59E0B' : '#EF4444';
+        
+        const riskBadge = patient.latestAnalysis 
+          ? `<span class="badge badge-${patient.latestAnalysis.riskLevel}" style="font-size: 11px;">
+               ${patient.latestAnalysis.riskLevelName}
+             </span>`
+          : '';
+        
+        const lastVisit = patient.latestAnalysis
+          ? Utils.getRelativeTime(patient.latestAnalysis.analyzedAt)
+          : '無記錄';
+        
+        return `
+          <div class="patient-card" onclick="viewPatientDetail('${patient.id}')"
+               style="animation: slideUp 0.3s ease-out ${index * 0.05}s both;">
+            <div class="patient-header">
+              <div class="patient-avatar">👤</div>
+              <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-id">ID: ${patient.id}</div>
+              </div>
+              <div class="health-score">
+                <div class="health-score-value" style="color: ${scoreColor};">
+                  ${patient.healthScore}
+                </div>
+                <div class="health-score-label">健康分</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-size: 12px; color: #6B7280;">
+                最近就診：${lastVisit}
+              </div>
+              ${riskBadge}
+            </div>
+            
+            <div class="patient-stats">
+              <div class="patient-stat">
+                <div class="patient-stat-value">${patient.totalRecords}</div>
+                <div class="patient-stat-label">總記錄</div>
+              </div>
+              <div class="patient-stat">
+                <div class="patient-stat-value">${patient.reviewedCount}</div>
+                <div class="patient-stat-label">已審核</div>
+              </div>
+              <div class="patient-stat">
+                <div class="patient-stat-value">${patient.highRiskCount}</div>
+                <div class="patient-stat-label">高風險</div>
+              </div>
+              <div class="patient-stat">
+                <div class="patient-stat-value" style="color: ${patient.isActive ? '#10B981' : '#9CA3AF'};">
+                  ${patient.isActive ? '✓' : '✗'}
+                </div>
+                <div class="patient-stat-label">活躍</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 應用篩選
+    function applyFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.filter === filter);
+      });
+      displayPatients();
+    }
+    
+    // 處理搜尋
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value.trim();
+      displayPatients();
+    }
+    
+    // 查看患者詳情
+    function viewPatientDetail(patientId) {
+      // 儲存患者 ID 並跳轉到詳情頁
+      window.location.href = `patient-detail.html?id=${patientId}`;
+    }
+    
+    // 初始化頁面
+    loadStats();
+    displayPatients();
+  </script>
+</body>
+</html>

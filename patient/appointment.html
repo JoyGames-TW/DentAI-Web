@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>預約看診 - DentAI 智慧口腔健康監測</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    /* 步驟指示器 */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 20px 16px;
+      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+      border-radius: 12px;
+      color: white;
+    }
+    
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .step.active .step-number {
+      background: white;
+      color: #3B82F6;
+    }
+    
+    .step-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .step-arrow {
+      font-size: 18px;
+      opacity: 0.5;
+    }
+    
+    /* 日期選擇器 */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .date-picker {
+      overflow-x: auto;
+      margin-bottom: 32px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .date-picker::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .date-list {
+      display: flex;
+      gap: 12px;
+      padding: 4px 0;
+    }
+    
+    .date-card {
+      flex-shrink: 0;
+      width: 80px;
+      padding: 16px 12px;
+      background: white;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .date-card:hover {
+      border-color: #3B82F6;
+      transform: translateY(-2px);
+    }
+    
+    .date-card.active {
+      border-color: #3B82F6;
+      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+      color: white;
+    }
+    
+    .date-weekday {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    
+    .date-day {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    
+    .date-month {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    /* 時段列表 */
+    .time-slots {
+      margin-bottom: 32px;
+    }
+    
+    .doctor-group {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: #F9FAFB;
+      border-radius: 16px;
+    }
+    
+    .doctor-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .doctor-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .doctor-details {
+      flex: 1;
+    }
+    
+    .doctor-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    
+    .doctor-specialty {
+      font-size: 13px;
+      color: #6B7280;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .time-slot {
+      padding: 12px 8px;
+      background: white;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .time-slot:hover:not(.booked) {
+      border-color: #3B82F6;
+      background: #EFF6FF;
+    }
+    
+    .time-slot.selected {
+      border-color: #3B82F6;
+      background: #3B82F6;
+      color: white;
+    }
+    
+    .time-slot.booked {
+      background: #F3F4F6;
+      color: #9CA3AF;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    
+    /* 空狀態 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .empty-state-text {
+      font-size: 16px;
+      color: #6B7280;
+    }
+    
+    /* 確認按鈕 */
+    .confirm-button {
+      width: 100%;
+      margin-top: 24px;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      transition: all 0.2s;
+    }
+    
+    .confirm-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
+    
+    .confirm-button:disabled {
+      background: #9CA3AF;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    /* 確認對話框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 340px;
+      width: calc(100% - 40px);
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    
+    .modal-message {
+      font-size: 14px;
+      color: #6B7280;
+      text-align: center;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    
+    .modal-details {
+      background: #F9FAFB;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .modal-detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    
+    .modal-detail-item:not(:last-child) {
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .modal-detail-label {
+      font-size: 14px;
+      color: #6B7280;
+    }
+    
+    .modal-detail-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .modal-btn-secondary {
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+    
+    .modal-btn-secondary:hover {
+      background: #E5E7EB;
+    }
+    
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+      color: white;
+    }
+    
+    .modal-btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* 載入狀態 */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #E5E7EB;
+      border-top-color: #3B82F6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 14px;
+      color: #6B7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="goBack()">←</button>
+      <h1 class="header-title">預約看診</h1>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 步驟指示器 -->
+      <div class="step-indicator">
+        <div class="step active">
+          <div class="step-number">1</div>
+          <div class="step-label">選擇日期</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step" id="step2">
+          <div class="step-number">2</div>
+          <div class="step-label">選擇時段</div>
+        </div>
+      </div>
+      
+      <!-- 載入狀態 -->
+      <div id="loadingState" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text">載入中...</div>
+      </div>
+      
+      <!-- 日期選擇 -->
+      <div id="dateSection">
+        <div class="section-title">
+          📅 選擇日期
+        </div>
+        <div class="date-picker">
+          <div class="date-list" id="dateList">
+            <!-- 動態載入 -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- 時段列表 -->
+      <div id="timeSection" style="display: none;">
+        <div class="section-title">
+          ⏰ 選擇時段
+        </div>
+        <div class="time-slots" id="timeSlots">
+          <!-- 動態載入 -->
+        </div>
+      </div>
+      
+      <!-- 空狀態 -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">此日期暫無可預約時段</div>
+      </div>
+      
+      <!-- 確認按鈕 -->
+      <button id="confirmBtn" class="confirm-button" disabled onclick="confirmBooking()">
+        確認預約
+      </button>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item">
+        <div class="nav-icon">�</div>
+        <div>檢測</div>
+      </a>
+      <a href="history.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>紀錄</div>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <!-- 確認對話框 -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-icon">✅</div>
+      <div class="modal-title">確認預約資訊</div>
+      <div class="modal-message">請確認以下預約資訊是否正確</div>
+      <div class="modal-details">
+        <div class="modal-detail-item">
+          <div class="modal-detail-label">日期</div>
+          <div class="modal-detail-value" id="modalDate">-</div>
+        </div>
+        <div class="modal-detail-item">
+          <div class="modal-detail-label">時間</div>
+          <div class="modal-detail-value" id="modalTime">-</div>
+        </div>
+        <div class="modal-detail-item">
+          <div class="modal-detail-label">醫師</div>
+          <div class="modal-detail-value" id="modalDoctor">-</div>
+        </div>
+        <div class="modal-detail-item">
+          <div class="modal-detail-label">診所</div>
+          <div class="modal-detail-value" id="modalHospital">-</div>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal()">取消</button>
+        <button class="modal-btn modal-btn-primary" onclick="submitBooking()">確認預約</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script>
+    let selectedDate = null;
+    let selectedSlot = null;
+    
+    // 初始化
+    async function init() {
+      // 檢查登入狀態
+      const currentUser = UserManager.getCurrentUser();
+      if (!currentUser) {
+        window.location.href = '../index.html';
+        return;
+      }
+      
+      // 初始化預約系統
+      AppointmentManager.init();
+      
+      // 載入日期列表
+      loadDates();
+    }
+    
+    // 載入可預約日期
+    function loadDates() {
+      const dates = AppointmentManager.getAvailableDates();
+      const dateList = document.getElementById('dateList');
+      
+      if (dates.length === 0) {
+        dateList.innerHTML = '<div class="empty-state"><div class="empty-state-text">暫無可預約日期</div></div>';
+        return;
+      }
+      
+      dateList.innerHTML = dates.map(dateStr => {
+        const date = new Date(dateStr);
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        const weekday = weekdays[date.getDay()];
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        
+        return `
+          <div class="date-card" onclick="selectDate('${dateStr}')">
+            <div class="date-weekday">週${weekday}</div>
+            <div class="date-day">${day}</div>
+            <div class="date-month">${month}月</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 選擇日期
+    function selectDate(dateStr) {
+      selectedDate = dateStr;
+      selectedSlot = null;
+      
+      // 更新日期卡片樣式
+      document.querySelectorAll('.date-card').forEach(card => {
+        card.classList.remove('active');
+      });
+      event.target.closest('.date-card').classList.add('active');
+      
+      // 更新步驟指示器
+      document.getElementById('step2').classList.add('active');
+      
+      // 載入時段
+      loadTimeSlots(dateStr);
+      
+      // 顯示時段區域
+      document.getElementById('timeSection').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      
+      // 滾動到時段區域
+      setTimeout(() => {
+        document.getElementById('timeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+    
+    // 載入時段
+    function loadTimeSlots(dateStr) {
+      const slots = AppointmentManager.getAvailableSlots(dateStr);
+      const timeSlots = document.getElementById('timeSlots');
+      
+      if (slots.length === 0) {
+        document.getElementById('timeSection').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+      
+      // 按醫生分組
+      const groupedByDoctor = slots.reduce((acc, slot) => {
+        if (!acc[slot.doctorId]) {
+          acc[slot.doctorId] = {
+            doctor: {
+              id: slot.doctorId,
+              name: slot.doctorName,
+              specialty: slot.doctorSpecialty,
+              hospital: slot.hospital
+            },
+            slots: []
+          };
+        }
+        acc[slot.doctorId].slots.push(slot);
+        return acc;
+      }, {});
+      
+      // 渲染醫生時段組
+      timeSlots.innerHTML = Object.values(groupedByDoctor).map(group => {
+        const doctorInitial = group.doctor.name.charAt(0);
+        
+        return `
+          <div class="doctor-group">
+            <div class="doctor-info">
+              <div class="doctor-avatar">${doctorInitial}</div>
+              <div class="doctor-details">
+                <div class="doctor-name">${group.doctor.name}</div>
+                <div class="doctor-specialty">
+                  🏥 ${group.doctor.specialty} | ${group.doctor.hospital}
+                </div>
+              </div>
+            </div>
+            <div class="time-grid">
+              ${group.slots.map(slot => `
+                <div class="time-slot ${slot.isBooked ? 'booked' : ''}" 
+                     data-slot-id="${slot.id}"
+                     onclick="${slot.isBooked ? '' : `selectSlot('${slot.id}')`}">
+                  ${slot.time}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // 禁用確認按鈕
+      document.getElementById('confirmBtn').disabled = true;
+    }
+    
+    // 選擇時段
+    function selectSlot(slotId) {
+      const slots = StorageManager.get(StorageManager.KEYS.APPOINTMENT_SLOTS) || [];
+      selectedSlot = slots.find(s => s.id === slotId);
+      
+      if (!selectedSlot || selectedSlot.isBooked) {
+        return;
+      }
+      
+      // 更新時段卡片樣式
+      document.querySelectorAll('.time-slot').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.querySelector(`[data-slot-id="${slotId}"]`).classList.add('selected');
+      
+      // 啟用確認按鈕
+      document.getElementById('confirmBtn').disabled = false;
+    }
+    
+    // 確認預約（顯示對話框）
+    function confirmBooking() {
+      if (!selectedSlot) {
+        return;
+      }
+      
+      // 填充對話框資訊
+      const date = new Date(selectedSlot.date);
+      const dateStr = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const weekday = weekdays[date.getDay()];
+      
+      document.getElementById('modalDate').textContent = `${dateStr} (週${weekday})`;
+      document.getElementById('modalTime').textContent = selectedSlot.time;
+      document.getElementById('modalDoctor').textContent = selectedSlot.doctorName;
+      document.getElementById('modalHospital').textContent = selectedSlot.hospital;
+      
+      // 顯示對話框
+      document.getElementById('confirmModal').classList.add('show');
+    }
+    
+    // 關閉對話框
+    function closeModal() {
+      document.getElementById('confirmModal').classList.remove('show');
+    }
+    
+    // 提交預約
+    async function submitBooking() {
+      if (!selectedSlot) {
+        return;
+      }
+      
+      const currentUser = UserManager.getCurrentUser();
+      
+      try {
+        // 執行預約
+        const appointment = AppointmentManager.bookAppointment(selectedSlot.id, currentUser.id);
+        
+        // 關閉對話框
+        closeModal();
+        
+        // 顯示成功訊息
+        Utils.showToast('預約成功！', 'success');
+        
+        // 延遲跳轉
+        await Utils.sleep(1500);
+        window.location.href = 'dashboard.html';
+        
+      } catch (error) {
+        console.error('預約失敗:', error);
+        Utils.showToast(error.message || '預約失敗，請稍後再試', 'error');
+        closeModal();
+      }
+    }
+    
+    // 返回
+    function goBack() {
+      window.history.back();
+    }
+    
+    // 頁面載入
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

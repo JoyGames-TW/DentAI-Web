@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上傳影像 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .upload-guide {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .guide-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .guide-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .guide-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    
+    .step-number {
+      background: rgba(255, 255, 255, 0.2);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .step-text {
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: 0.95;
+    }
+    
+    .upload-area {
+      border: 3px dashed #D1D5DB;
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      background: white;
+      transition: var(--transition-fast);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .upload-area.dragover {
+      border-color: #3B82F6;
+      background: #EFF6FF;
+    }
+    
+    .upload-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .upload-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    
+    .upload-hint {
+      font-size: 14px;
+      color: #6B7280;
+      margin-bottom: 16px;
+    }
+    
+    .upload-restrictions {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    
+    #imageInput {
+      display: none;
+    }
+    
+    .preview-container {
+      display: none;
+      margin-top: 24px;
+    }
+    
+    .preview-image-wrapper {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .preview-image {
+      width: 100%;
+      display: block;
+      max-height: 400px;
+      object-fit: contain;
+      background: #F3F4F6;
+    }
+    
+    .preview-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: var(--transition-fast);
+    }
+    
+    .preview-image-wrapper:hover .preview-overlay {
+      opacity: 1;
+    }
+    
+    .preview-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .preview-action-btn {
+      background: white;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      border: none;
+    }
+    
+    .preview-action-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .image-info {
+      background: #F9FAFB;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      color: #6B7280;
+    }
+    
+    .info-value {
+      color: #111827;
+      font-weight: 500;
+    }
+    
+    .quality-check-section {
+      display: none;
+      margin-top: 24px;
+    }
+    
+    .quality-item {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quality-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      color: #374151;
+    }
+    
+    .quality-icon {
+      font-size: 24px;
+    }
+    
+    .quality-value {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #E5E7EB;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #10B981);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="history.back()">←</button>
+      <h1 class="header-title">上傳影像</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 拍攝指引 -->
+      <div class="upload-guide fade-in">
+        <div class="guide-title">
+          <span>📖</span>
+          <span>拍攝指引</span>
+        </div>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-number">1</div>
+            <div class="step-text">在明亮處拍攝，避免逆光或陰影</div>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">2</div>
+            <div class="step-text">保持鏡頭穩定，對焦清晰</div>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">3</div>
+            <div class="step-text">拍攝完整的牙齒與牙齦區域</div>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">4</div>
+            <div class="step-text">確保影像清晰後再上傳</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 上傳區域 -->
+      <div class="upload-area slide-up" id="uploadArea">
+        <div class="upload-icon">📸</div>
+        <div class="upload-title">點擊或拖曳上傳影像</div>
+        <div class="upload-hint">支援 JPG、PNG 格式</div>
+        <button class="btn btn-primary" style="margin-top: 16px;">
+          選擇檔案
+        </button>
+        <div class="upload-restrictions">檔案大小限制 5MB</div>
+        <input 
+          type="file" 
+          id="imageInput" 
+          accept="image/jpeg,image/png,image/jpg"
+        >
+      </div>
+      
+      <!-- 預覽區域 -->
+      <div class="preview-container" id="previewContainer">
+        <div class="preview-image-wrapper">
+          <img id="previewImage" class="preview-image" alt="預覽影像">
+          <div class="preview-overlay">
+            <div class="preview-actions">
+              <button class="preview-action-btn" onclick="rotateImage()">🔄</button>
+              <button class="preview-action-btn" onclick="removeImage()">🗑️</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="image-info">
+          <div class="info-row">
+            <span class="info-label">檔案名稱</span>
+            <span class="info-value" id="fileName">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">檔案大小</span>
+            <span class="info-value" id="fileSize">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">上傳時間</span>
+            <span class="info-value" id="uploadTime">-</span>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary btn-block btn-lg" id="startAnalysisBtn">
+          開始品質檢測
+        </button>
+      </div>
+      
+      <!-- 品質檢測結果 -->
+      <div class="quality-check-section" id="qualityCheckSection">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">品質檢測結果</h3>
+        
+        <div class="quality-item">
+          <div class="quality-label">
+            <span class="quality-icon">🎯</span>
+            <span>清晰度</span>
+          </div>
+          <div class="quality-value" id="clarityScore" style="color: #3B82F6;">--</div>
+        </div>
+        
+        <div class="quality-item">
+          <div class="quality-label">
+            <span class="quality-icon">💡</span>
+            <span>光線品質</span>
+          </div>
+          <div class="quality-value" id="brightnessResult">--</div>
+        </div>
+        
+        <div class="quality-item">
+          <div class="quality-label">
+            <span class="quality-icon">📐</span>
+            <span>拍攝角度</span>
+          </div>
+          <div class="quality-value" id="angleResult">--</div>
+        </div>
+        
+        <div class="quality-item">
+          <div class="quality-label">
+            <span class="quality-icon">📊</span>
+            <span>綜合評分</span>
+          </div>
+          <div class="quality-value" id="overallScore" style="color: #10B981;">--</div>
+        </div>
+        
+        <div id="qualityMessage" class="mt-2"></div>
+        
+        <div id="actionButtons" style="margin-top: 16px; display: none;">
+          <!-- 動態生成按鈕 -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item active">
+        <div class="nav-icon">📸</div>
+        <div>上傳</div>
+      </a>
+      <a href="history.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>記錄</div>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
+    const uploadArea = document.getElementById('uploadArea');
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const qualityCheckSection = document.getElementById('qualityCheckSection');
+    
+    let currentImageFile = null;
+    let currentImageData = null;
+    let imageRotation = 0;
+    let qualityCheckResult = null;
+    
+    // 點擊上傳區域
+    uploadArea.addEventListener('click', () => {
+      imageInput.click();
+    });
+    
+    // 檔案選擇
+    imageInput.addEventListener('change', handleFileSelect);
+    
+    // 拖放功能
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+    
+    // 處理檔案選擇
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    }
+    
+    // 處理檔案
+    async function handleFile(file) {
+      // 檢查檔案類型
+      if (!file.type.match('image.*')) {
+        Utils.showToast('請選擇圖片檔案', 'error');
+        return;
+      }
+      
+      // 檢查檔案大小 (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        Utils.showToast('檔案大小超過 5MB', 'error');
+        return;
+      }
+      
+      Utils.showLoading('載入影像中...');
+      
+      try {
+        currentImageFile = file;
+        currentImageData = await Utils.fileToBase64(file);
+        
+        // 顯示預覽
+        previewImage.src = currentImageData;
+        uploadArea.style.display = 'none';
+        previewContainer.style.display = 'block';
+        qualityCheckSection.style.display = 'none';
+        
+        // 更新檔案資訊
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = Utils.formatFileSize(file.size);
+        document.getElementById('uploadTime').textContent = new Date().toLocaleTimeString('zh-TW');
+        
+        Utils.hideLoading();
+        Utils.showToast('影像載入成功', 'success');
+      } catch (error) {
+        Utils.hideLoading();
+        Utils.showToast('影像載入失敗', 'error');
+        console.error(error);
+      }
+    }
+    
+    // 旋轉影像
+    function rotateImage() {
+      imageRotation = (imageRotation + 90) % 360;
+      previewImage.style.transform = `rotate(${imageRotation}deg)`;
+    }
+    
+    // 移除影像
+    function removeImage() {
+      Utils.showConfirm('確定要移除此影像嗎？', () => {
+        currentImageFile = null;
+        currentImageData = null;
+        imageRotation = 0;
+        uploadArea.style.display = 'block';
+        previewContainer.style.display = 'none';
+        qualityCheckSection.style.display = 'none';
+        imageInput.value = '';
+        previewImage.style.transform = '';
+        Utils.showToast('已移除影像', 'info');
+      });
+    }
+    
+    // 開始品質檢測
+    document.getElementById('startAnalysisBtn').addEventListener('click', async () => {
+      if (!currentImageFile) {
+        Utils.showToast('請先選擇影像', 'warning');
+        return;
+      }
+      
+      Utils.showLoading('AI 品質檢測中...');
+      
+      try {
+        // 先儲存影像
+        const savedImage = ImageManager.saveImage({
+          base64: currentImageData,
+          fileName: currentImageFile.name,
+          fileSize: currentImageFile.size
+        });
+        
+        // 執行品質檢測
+        qualityCheckResult = await ImageQualityChecker.analyze(currentImageFile);
+        
+        // 更新影像品質檢測結果
+        ImageManager.updateQualityCheck(savedImage.id, qualityCheckResult);
+        
+        Utils.hideLoading();
+        
+        // 顯示檢測結果
+        displayQualityResult(qualityCheckResult, savedImage.id);
+        
+      } catch (error) {
+        Utils.hideLoading();
+        Utils.showToast('品質檢測失敗', 'error');
+        console.error(error);
+      }
+    });
+    
+    // 顯示品質檢測結果
+    function displayQualityResult(result, imageId) {
+      qualityCheckSection.style.display = 'block';
+      qualityCheckSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      // 更新各項指標
+      document.getElementById('clarityScore').textContent = result.clarity + ' 分';
+      document.getElementById('clarityScore').style.color = result.clarity >= 70 ? '#10B981' : '#EF4444';
+      
+      const brightnessText = {
+        good: '✓ 適中',
+        too_dark: '✕ 過暗',
+        too_bright: '✕ 過亮'
+      };
+      const brightnessColor = {
+        good: '#10B981',
+        too_dark: '#EF4444',
+        too_bright: '#EF4444'
+      };
+      document.getElementById('brightnessResult').textContent = brightnessText[result.brightness];
+      document.getElementById('brightnessResult').style.color = brightnessColor[result.brightness];
+      
+      const angleText = result.angle === 'appropriate' ? '✓ 適當' : '✕ 需調整';
+      const angleColor = result.angle === 'appropriate' ? '#10B981' : '#EF4444';
+      document.getElementById('angleResult').textContent = angleText;
+      document.getElementById('angleResult').style.color = angleColor;
+      
+      document.getElementById('overallScore').textContent = result.overallScore + ' 分';
+      document.getElementById('overallScore').style.color = result.overallScore >= 70 ? '#10B981' : '#EF4444';
+      
+      // 顯示建議訊息
+      const messageDiv = document.getElementById('qualityMessage');
+      if (result.passed) {
+        messageDiv.innerHTML = `
+          <div class="alert alert-low">
+            <div class="alert-icon">✅</div>
+            <div class="alert-content">
+              <div class="alert-title">品質檢測通過</div>
+              <div class="alert-message">影像品質良好，可以進行 AI 分析。</div>
+            </div>
+          </div>
+        `;
+      } else {
+        messageDiv.innerHTML = `
+          <div class="alert alert-high">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <div class="alert-title">品質檢測未通過</div>
+              <div class="alert-message">
+                ${result.suggestions.join('<br>')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 顯示操作按鈕
+      const actionButtons = document.getElementById('actionButtons');
+      actionButtons.style.display = 'block';
+      
+      if (result.passed) {
+        actionButtons.innerHTML = `
+          <button class="btn btn-success btn-block btn-lg" onclick="proceedToAnalysis('${imageId}')">
+            ✓ 進行 AI 分析
+          </button>
+          <button class="btn btn-secondary btn-block mt-2" onclick="resetUpload()">
+            重新上傳
+          </button>
+        `;
+      } else {
+        actionButtons.innerHTML = `
+          <button class="btn btn-secondary btn-block btn-lg" onclick="resetUpload()">
+            重新拍攝
+          </button>
+          <button class="btn btn-primary btn-block mt-2" onclick="forceAnalysis('${imageId}')">
+            仍要繼續分析
+          </button>
+        `;
+      }
+    }
+    
+    // 重置上傳
+    function resetUpload() {
+      removeImage();
+      Utils.scrollToTop();
+    }
+    
+    // 強制分析
+    async function forceAnalysis(imageId) {
+      Utils.showConfirm('影像品質未達標準，繼續分析可能影響結果準確度。確定要繼續嗎？', () => {
+        proceedToAnalysis(imageId);
+      });
+    }
+    
+    // 繼續進行 AI 分析
+    async function proceedToAnalysis(imageId) {
+      Utils.showLoading('AI 分析中，請稍候...');
+      
+      try {
+        // 執行異常檢測
+        const anomalies = await AnomalyDetector.detect(currentImageData);
+        
+        // 計算風險評分
+        const riskResult = RiskCalculator.calculate(anomalies);
+        
+        // 儲存分析結果
+        const analysisData = {
+          anomalies,
+          riskScore: riskResult.score,
+          riskLevel: riskResult.level,
+          riskLevelName: riskResult.levelName,
+          recommendation: riskResult.recommendation
+        };
+        
+        const savedAnalysis = AnalysisManager.saveAnalysis(imageId, analysisData);
+        
+        Utils.hideLoading();
+        Utils.showToast('分析完成！', 'success');
+        
+        // 跳轉到報告頁面
+        setTimeout(() => {
+          window.location.href = `report.html?id=${savedAnalysis.id}`;
+        }, 1000);
+        
+      } catch (error) {
+        Utils.hideLoading();
+        Utils.showToast('AI 分析失敗', 'error');
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>患者詳情 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .patient-header-card {
+      background: linear-gradient(135deg, #60A5FA, #3B82F6);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .patient-info-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .patient-avatar-lg {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .patient-detail-info h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .patient-detail-info p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    
+    .health-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    
+    .metric-box {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    
+    .metric-label {
+      font-size: 10px;
+      opacity: 0.9;
+    }
+    
+    .tab-navigation {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+    
+    .tab-btn {
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: 1px solid #D1D5DB;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+    
+    .tab-btn.active {
+      background: #3B82F6;
+      color: white;
+      border-color: #3B82F6;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .timeline-container {
+      position: relative;
+      padding-left: 24px;
+    }
+    
+    .timeline-line {
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #E5E7EB;
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .timeline-dot {
+      position: absolute;
+      left: -20px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #3B82F6;
+      z-index: 1;
+    }
+    
+    .timeline-dot.high-risk {
+      border-color: #EF4444;
+    }
+    
+    .timeline-dot.medium-risk {
+      border-color: #F59E0B;
+    }
+    
+    .timeline-dot.low-risk {
+      border-color: #10B981;
+    }
+    
+    .record-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .record-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .record-date {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .record-details {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .detail-tag {
+      background: #F3F4F6;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #374151;
+    }
+    
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+    }
+    
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .trend-chart {
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 10px 0;
+    }
+    
+    .trend-bar {
+      flex: 1;
+      background: linear-gradient(to top, #3B82F6, #60A5FA);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      min-height: 20px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .trend-bar:hover {
+      opacity: 0.8;
+    }
+    
+    .trend-bar-label {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #6B7280;
+      white-space: nowrap;
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .summary-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .summary-title {
+      font-size: 13px;
+      color: #6B7280;
+      margin-bottom: 8px;
+    }
+    
+    .summary-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="window.location.href='patients.html'">←</button>
+      <h1 class="header-title">患者詳情</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 患者資訊卡 -->
+      <div class="patient-header-card fade-in">
+        <div class="patient-info-row">
+          <div class="patient-avatar-lg">👤</div>
+          <div class="patient-detail-info">
+            <h2 id="patientName">載入中...</h2>
+            <p id="patientId">ID: --</p>
+          </div>
+        </div>
+        
+        <div class="health-metrics">
+          <div class="metric-box">
+            <div class="metric-value" id="healthScore">--</div>
+            <div class="metric-label">健康分數</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="totalRecords">0</div>
+            <div class="metric-label">總記錄</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="highRiskCount">0</div>
+            <div class="metric-label">高風險</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="lastVisit">--</div>
+            <div class="metric-label">最近就診</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 分頁導覽 -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" onclick="switchTab('timeline')">
+          📅 時間軸
+        </button>
+        <button class="tab-btn" onclick="switchTab('trends')">
+          📈 趨勢分析
+        </button>
+        <button class="tab-btn" onclick="switchTab('summary')">
+          📊 統計摘要
+        </button>
+      </div>
+      
+      <!-- 時間軸分頁 -->
+      <div id="timeline" class="tab-content active">
+        <div class="timeline-container" id="timelineList">
+          <!-- 動態載入 -->
+        </div>
+      </div>
+      
+      <!-- 趨勢分析分頁 -->
+      <div id="trends" class="tab-content">
+        <div class="chart-container">
+          <div class="chart-title">
+            <span>📈</span>
+            <span>風險評分趨勢</span>
+          </div>
+          <div class="trend-chart" id="trendChart">
+            <!-- 動態生成圖表 -->
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-title">
+            <span>⚠️</span>
+            <span>異常類型統計</span>
+          </div>
+          <div id="anomalyStats">
+            <!-- 動態載入 -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- 統計摘要分頁 -->
+      <div id="summary" class="tab-content">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-title">平均風險評分</div>
+            <div class="summary-value" id="avgScore">--</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-title">最高風險評分</div>
+            <div class="summary-value" id="maxScore" style="color: #EF4444;">--</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-title">檢測異常總數</div>
+            <div class="summary-value" id="totalAnomalies">--</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-title">已審核記錄</div>
+            <div class="summary-value" id="reviewedCount" style="color: #10B981;">--</div>
+          </div>
+        </div>
+        
+        <div class="chart-container" style="margin-top: 16px;">
+          <div class="chart-title">
+            <span>📋</span>
+            <span>風險等級分布</span>
+          </div>
+          <div id="riskDistribution">
+            <!-- 動態載入 -->
+          </div>
+        </div>
+      </div>
+      
+      <div style="height: 100px;"></div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="dashboard.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>儀表板</div>
+      </a>
+      <a href="review.html" class="nav-item">
+        <div class="nav-icon">📋</div>
+        <div>審核</div>
+      </a>
+      <a href="patients.html" class="nav-item active">
+        <div class="nav-icon">👥</div>
+        <div>患者</div>
+      </a>
+      <a href="doctor-profile.html" class="nav-item">
+        <div class="nav-icon">👨‍⚕️</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = '../patient/login.html';
+    }
+    
+    // 從 URL 獲取患者 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('id');
+    
+    if (!patientId) {
+      window.location.href = 'patients.html';
+    }
+    
+    let patientData = null;
+    
+    // 載入患者資料
+    function loadPatientData() {
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      const patientAnalyses = allAnalyses.filter(a => a.userId === patientId);
+      
+      if (patientAnalyses.length === 0) {
+        Utils.showToast('找不到患者資料', 'error');
+        window.location.href = 'patients.html';
+        return;
+      }
+      
+      // 排序記錄（最新在前）
+      patientAnalyses.sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
+      
+      const latestAnalysis = patientAnalyses[0];
+      const avgScore = Math.round(
+        patientAnalyses.reduce((sum, a) => sum + a.riskScore, 0) / patientAnalyses.length
+      );
+      const healthScore = 100 - avgScore;
+      
+      patientData = {
+        id: patientId,
+        name: latestAnalysis.userName,
+        analyses: patientAnalyses,
+        healthScore,
+        avgScore,
+        totalRecords: patientAnalyses.length,
+        highRiskCount: patientAnalyses.filter(a => a.riskLevel === 'high').length,
+        mediumRiskCount: patientAnalyses.filter(a => a.riskLevel === 'medium').length,
+        lowRiskCount: patientAnalyses.filter(a => a.riskLevel === 'low').length,
+        reviewedCount: patientAnalyses.filter(a => a.status === 'reviewed').length,
+        lastVisit: latestAnalysis.analyzedAt
+      };
+      
+      displayPatientHeader();
+      displayTimeline();
+    }
+    
+    // 顯示患者頭部資訊
+    function displayPatientHeader() {
+      document.getElementById('patientName').textContent = patientData.name;
+      document.getElementById('patientId').textContent = `ID: ${patientData.id}`;
+      
+      const scoreColor = patientData.healthScore >= 70 ? '#FFFFFF' :
+                        patientData.healthScore >= 40 ? '#FEF3C7' : '#FEE2E2';
+      document.getElementById('healthScore').textContent = patientData.healthScore;
+      document.getElementById('healthScore').style.color = scoreColor;
+      
+      document.getElementById('totalRecords').textContent = patientData.totalRecords;
+      document.getElementById('highRiskCount').textContent = patientData.highRiskCount;
+      
+      const daysSince = Math.floor((Date.now() - new Date(patientData.lastVisit).getTime()) / (1000 * 60 * 60 * 24));
+      document.getElementById('lastVisit').textContent = daysSince === 0 ? '今天' : `${daysSince}天前`;
+    }
+    
+    // 顯示時間軸
+    function displayTimeline() {
+      const container = document.getElementById('timelineList');
+      
+      container.innerHTML = patientData.analyses.map((analysis, index) => {
+        return `
+          <div class="timeline-item" style="animation: slideUp 0.3s ease-out ${index * 0.05}s both;">
+            <div class="timeline-dot ${analysis.riskLevel}-risk"></div>
+            <div class="record-card" onclick="viewAnalysis('${analysis.id}')">
+              <div class="record-header">
+                <div class="record-date">${Utils.formatDateTime(analysis.analyzedAt)}</div>
+                <span class="badge badge-${analysis.riskLevel}">
+                  ${analysis.riskLevelName}
+                </span>
+              </div>
+              <div class="record-details">
+                <div class="detail-tag">評分 ${analysis.riskScore}</div>
+                <div class="detail-tag">${analysis.anomalies.length} 項異常</div>
+                <div class="detail-tag">${analysis.status === 'reviewed' ? '✓ 已審核' : '⏳ 待審核'}</div>
+              </div>
+              ${analysis.status === 'reviewed' ? `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #F3F4F6;">
+                  <div style="font-size: 12px; color: #6B7280;">
+                    醫師意見：${analysis.doctorNotes?.substring(0, 50)}${analysis.doctorNotes?.length > 50 ? '...' : ''}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示趨勢圖表
+    function displayTrends() {
+      const chartContainer = document.getElementById('trendChart');
+      const recentAnalyses = patientData.analyses.slice(0, 10).reverse();
+      
+      const maxScore = Math.max(...recentAnalyses.map(a => a.riskScore));
+      
+      chartContainer.innerHTML = recentAnalyses.map((analysis, index) => {
+        const height = (analysis.riskScore / maxScore) * 100;
+        const color = analysis.riskLevel === 'high' ? '#EF4444' :
+                     analysis.riskLevel === 'medium' ? '#F59E0B' : '#10B981';
+        
+        return `
+          <div class="trend-bar" 
+               style="height: ${height}%; background: linear-gradient(to top, ${color}, ${color}cc);"
+               title="風險評分: ${analysis.riskScore}">
+            <div class="trend-bar-label">
+              ${new Date(analysis.analyzedAt).getMonth() + 1}/${new Date(analysis.analyzedAt).getDate()}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // 異常類型統計
+      displayAnomalyStats();
+    }
+    
+    // 顯示異常統計
+    function displayAnomalyStats() {
+      const anomalyMap = new Map();
+      
+      patientData.analyses.forEach(analysis => {
+        analysis.anomalies.forEach(anomaly => {
+          const count = anomalyMap.get(anomaly.type) || 0;
+          anomalyMap.set(anomaly.type, count + 1);
+        });
+      });
+      
+      const anomalyConfig = {
+        caries: { name: '齲齒', icon: '🦷', color: '#FEE2E2' },
+        calculus: { name: '牙結石', icon: '💎', color: '#FEF3C7' },
+        gingivitis: { name: '牙齦炎', icon: '🔴', color: '#FECACA' },
+        stain: { name: '色素沉著', icon: '🟤', color: '#FDE68A' },
+        recession: { name: '牙齦萎縮', icon: '📉', color: '#DBEAFE' }
+      };
+      
+      const container = document.getElementById('anomalyStats');
+      const total = Array.from(anomalyMap.values()).reduce((sum, count) => sum + count, 0);
+      
+      container.innerHTML = Array.from(anomalyMap.entries()).map(([type, count]) => {
+        const config = anomalyConfig[type] || { name: type, icon: '⚠️', color: '#E5E7EB' };
+        const percentage = ((count / total) * 100).toFixed(1);
+        
+        return `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 36px; height: 36px; background: ${config.color}; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+              ${config.icon}
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; font-weight: 500;">${config.name}</span>
+                <span style="font-size: 14px; font-weight: 600; color: #3B82F6;">${count} 次</span>
+              </div>
+              <div style="height: 6px; background: #F3F4F6; border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: ${percentage}%; background: #3B82F6; border-radius: 3px;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示統計摘要
+    function displaySummary() {
+      document.getElementById('avgScore').textContent = patientData.avgScore;
+      
+      const maxScore = Math.max(...patientData.analyses.map(a => a.riskScore));
+      document.getElementById('maxScore').textContent = maxScore;
+      
+      const totalAnomalies = patientData.analyses.reduce((sum, a) => sum + a.anomalies.length, 0);
+      document.getElementById('totalAnomalies').textContent = totalAnomalies;
+      
+      document.getElementById('reviewedCount').textContent = patientData.reviewedCount;
+      
+      // 風險等級分布
+      displayRiskDistribution();
+    }
+    
+    // 顯示風險分布
+    function displayRiskDistribution() {
+      const container = document.getElementById('riskDistribution');
+      const total = patientData.totalRecords;
+      
+      const distribution = [
+        { level: 'high', name: '高風險', count: patientData.highRiskCount, color: '#EF4444' },
+        { level: 'medium', name: '中風險', count: patientData.mediumRiskCount, color: '#F59E0B' },
+        { level: 'low', name: '低風險', count: patientData.lowRiskCount, color: '#10B981' }
+      ];
+      
+      container.innerHTML = distribution.map(item => {
+        const percentage = ((item.count / total) * 100).toFixed(1);
+        return `
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 14px; font-weight: 500; color: ${item.color};">${item.name}</span>
+              <span style="font-size: 14px; font-weight: 600;">${item.count} 次 (${percentage}%)</span>
+            </div>
+            <div style="height: 8px; background: #F3F4F6; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; width: ${percentage}%; background: ${item.color}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 切換分頁
+    function switchTab(tabName) {
+      // 更新按鈕狀態
+      document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+        btn.classList.toggle('active', 
+          (tabName === 'timeline' && index === 0) ||
+          (tabName === 'trends' && index === 1) ||
+          (tabName === 'summary' && index === 2)
+        );
+      });
+      
+      // 更新內容顯示
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabName).classList.add('active');
+      
+      // 載入對應數據
+      if (tabName === 'trends') {
+        displayTrends();
+      } else if (tabName === 'summary') {
+        displaySummary();
+      }
+    }
+    
+    // 查看分析詳情
+    function viewAnalysis(analysisId) {
+      window.location.href = `review.html?id=${analysisId}`;
+    }
+    
+    // 初始化頁面
+    loadPatientData();
+  </script>
+</body>
+</html>

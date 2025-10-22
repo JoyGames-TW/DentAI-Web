@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>分析報告 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .report-hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px 24px;
+      border-radius: 0 0 24px 24px;
+      margin: -16px -16px 24px -16px;
+      text-align: center;
+    }
+    
+    .risk-score-display {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .risk-score-value {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    
+    .risk-score-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 8px;
+    }
+    
+    .risk-level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      margin-bottom: 16px;
+    }
+    
+    .report-date {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .section {
+      margin-bottom: 24px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .anomaly-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #3B82F6;
+    }
+    
+    .anomaly-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .anomaly-type {
+      font-weight: 600;
+      font-size: 16px;
+      color: #111827;
+    }
+    
+    .confidence-badge {
+      background: #EFF6FF;
+      color: #3B82F6;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .anomaly-location {
+      font-size: 14px;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+    
+    .anomaly-description {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    
+    .recommendation-box {
+      background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .recommendation-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #92400E;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .recommendation-text {
+      font-size: 14px;
+      color: #78350F;
+      line-height: 1.6;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-box {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: #6B7280;
+    }
+    
+    .image-preview {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .image-preview img {
+      width: 100%;
+      display: block;
+    }
+    
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .review-status {
+      background: #F3F4F6;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .review-status-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .review-status-text {
+      font-size: 14px;
+      color: #6B7280;
+    }
+    
+    .doctor-notes {
+      background: #EFF6FF;
+      border-left: 4px solid #3B82F6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    
+    .doctor-notes-title {
+      font-weight: 600;
+      color: #1E40AF;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .doctor-notes-text {
+      font-size: 14px;
+      color: #1E40AF;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <button class="header-back-btn" onclick="history.back()">←</button>
+      <h1 class="header-title">分析報告</h1>
+      <button class="header-back-btn" onclick="shareReport()" style="font-size: 20px;">📤</button>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 載入中狀態 -->
+      <div id="loadingState" class="text-center" style="padding: 60px 20px;">
+        <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
+        <div style="color: #6B7280;">載入報告中...</div>
+      </div>
+      
+      <!-- 報告內容 -->
+      <div id="reportContent" style="display: none;">
+        <!-- 風險評分展示 -->
+        <div class="report-hero fade-in">
+          <div class="risk-score-display">
+            <div class="risk-score-value" id="riskScoreDisplay">--</div>
+            <div class="risk-score-label">風險評分</div>
+          </div>
+          <div class="risk-level-badge" id="riskLevelBadge">
+            <span>--</span>
+          </div>
+          <div class="report-date" id="reportDate">--</div>
+        </div>
+        
+        <!-- 審核狀態 -->
+        <div class="review-status" id="reviewStatus" style="display: none;">
+          <div class="review-status-header">
+            <span>✓</span>
+            <span>醫師已審核</span>
+          </div>
+          <div class="review-status-text" id="reviewInfo">--</div>
+          <div class="doctor-notes" id="doctorNotes" style="display: none;">
+            <div class="doctor-notes-title">醫師建議</div>
+            <div class="doctor-notes-text" id="doctorNotesText">--</div>
+          </div>
+        </div>
+        
+        <!-- 統計數據 -->
+        <div class="stats-grid slide-up">
+          <div class="stat-box">
+            <div class="stat-value" id="anomalyCount" style="color: #3B82F6;">0</div>
+            <div class="stat-label">檢測異常</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="highRiskCount" style="color: #EF4444;">0</div>
+            <div class="stat-label">高風險項目</div>
+          </div>
+        </div>
+        
+        <!-- 建議事項 -->
+        <div class="recommendation-box" id="recommendationBox">
+          <div class="recommendation-title">
+            <span>💡</span>
+            <span>健康建議</span>
+          </div>
+          <div class="recommendation-text" id="recommendationText">--</div>
+        </div>
+        
+        <!-- 影像預覽 -->
+        <div class="section">
+          <div class="section-title">
+            <span>📸</span>
+            <span>檢測影像</span>
+          </div>
+          <div class="image-preview" id="imagePreview">
+            <!-- 動態載入 -->
+          </div>
+        </div>
+        
+        <!-- 異常檢測結果 -->
+        <div class="section">
+          <div class="section-title">
+            <span>🔍</span>
+            <span>檢測結果 (<span id="anomalyCountText">0</span> 項)</span>
+          </div>
+          <div id="anomaliesList">
+            <!-- 動態載入 -->
+          </div>
+        </div>
+        
+        <!-- 操作按鈕 -->
+        <div class="action-buttons">
+          <button class="btn btn-secondary" onclick="viewHistory()">
+            查看歷史
+          </button>
+          <button class="btn btn-primary" onclick="bookAppointment()">
+            預約看診
+          </button>
+          <button class="btn btn-primary" onclick="uploadNewImage()">
+            再次檢測
+          </button>
+        </div>
+      </div>
+      
+      <!-- 錯誤狀態 -->
+      <div id="errorState" style="display: none;" class="text-center" style="padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">😞</div>
+        <div style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">找不到報告</div>
+        <div style="font-size: 14px; color: #6B7280; margin-bottom: 24px;">該分析記錄可能已被刪除</div>
+        <button class="btn btn-primary" onclick="window.location.href='home.html'">返回首頁</button>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item">
+        <div class="nav-icon">📸</div>
+        <div>上傳</div>
+      </a>
+      <a href="history.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>記錄</div>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    
+    // 從 URL 取得分析 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const analysisId = urlParams.get('id');
+    
+    if (!analysisId) {
+      showError();
+    } else {
+      loadReport(analysisId);
+    }
+    
+    // 載入報告
+    async function loadReport(analysisId) {
+      await Utils.sleep(800); // 模擬載入時間
+      
+      const analysis = AnalysisManager.getAnalysis(analysisId);
+      
+      if (!analysis) {
+        showError();
+        return;
+      }
+      
+      // 取得對應的影像
+      const image = ImageManager.getImage(analysis.imageId);
+      
+      // 隱藏載入狀態，顯示報告
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('reportContent').style.display = 'block';
+      
+      // 顯示風險評分
+      displayRiskScore(analysis);
+      
+      // 顯示統計數據
+      displayStats(analysis);
+      
+      // 顯示建議
+      displayRecommendation(analysis);
+      
+      // 顯示影像
+      if (image) {
+        displayImage(image);
+      }
+      
+      // 顯示異常列表
+      displayAnomalies(analysis.anomalies);
+      
+      // 顯示審核狀態
+      if (analysis.status === 'reviewed') {
+        displayReviewStatus(analysis);
+      }
+    }
+    
+    // 顯示風險評分
+    function displayRiskScore(analysis) {
+      const scoreDisplay = document.getElementById('riskScoreDisplay');
+      const levelBadge = document.getElementById('riskLevelBadge');
+      const reportDate = document.getElementById('reportDate');
+      
+      scoreDisplay.textContent = analysis.riskScore;
+      
+      const colors = {
+        low: '#10B981',
+        medium: '#F59E0B',
+        high: '#EF4444'
+      };
+      
+      const icons = {
+        low: '✅',
+        medium: '⚡',
+        high: '⚠️'
+      };
+      
+      scoreDisplay.style.color = colors[analysis.riskLevel];
+      levelBadge.innerHTML = `<span>${icons[analysis.riskLevel]}</span><span>${analysis.riskLevelName}</span>`;
+      reportDate.textContent = '分析時間：' + Utils.formatDateTime(analysis.analyzedAt);
+    }
+    
+    // 顯示統計數據
+    function displayStats(analysis) {
+      document.getElementById('anomalyCount').textContent = analysis.anomalies.length;
+      
+      const highRiskCount = analysis.anomalies.filter(a => 
+        a.type === 'caries' || a.type === 'recession'
+      ).length;
+      
+      document.getElementById('highRiskCount').textContent = highRiskCount;
+      document.getElementById('anomalyCountText').textContent = analysis.anomalies.length;
+    }
+    
+    // 顯示建議
+    function displayRecommendation(analysis) {
+      const box = document.getElementById('recommendationBox');
+      const text = document.getElementById('recommendationText');
+      
+      text.textContent = analysis.recommendation;
+      
+      // 根據風險等級調整顏色
+      if (analysis.riskLevel === 'high') {
+        box.style.background = 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)';
+        box.querySelector('.recommendation-title').style.color = '#991B1B';
+        text.style.color = '#7F1D1D';
+      } else if (analysis.riskLevel === 'medium') {
+        box.style.background = 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)';
+        box.querySelector('.recommendation-title').style.color = '#92400E';
+        text.style.color = '#78350F';
+      } else {
+        box.style.background = 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)';
+        box.querySelector('.recommendation-title').style.color = '#065F46';
+        text.style.color = '#064E3B';
+      }
+    }
+    
+    // 顯示影像
+    function displayImage(image) {
+      const preview = document.getElementById('imagePreview');
+      preview.innerHTML = `<img src="${image.imageData}" alt="檢測影像">`;
+    }
+    
+    // 顯示異常列表
+    function displayAnomalies(anomalies) {
+      const list = document.getElementById('anomaliesList');
+      
+      if (anomalies.length === 0) {
+        list.innerHTML = `
+          <div class="text-center" style="padding: 40px 20px; color: #9CA3AF;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✨</div>
+            <div>未檢測到明顯異常</div>
+          </div>
+        `;
+        return;
+      }
+      
+      list.innerHTML = anomalies.map((anomaly, index) => {
+        const severityColors = {
+          severe: '#EF4444',
+          moderate: '#F59E0B',
+          mild: '#3B82F6'
+        };
+        
+        return `
+          <div class="anomaly-card" style="border-left-color: ${severityColors[anomaly.severity] || '#3B82F6'}; animation: slideUp 0.3s ease-out ${index * 0.1}s both;">
+            <div class="anomaly-header">
+              <div class="anomaly-type">${anomaly.typeName}</div>
+              <div class="confidence-badge">${anomaly.confidence}% 信心度</div>
+            </div>
+            <div class="anomaly-location">📍 位置：${anomaly.location}</div>
+            <div class="anomaly-description">${anomaly.description}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示審核狀態
+    function displayReviewStatus(analysis) {
+      const statusDiv = document.getElementById('reviewStatus');
+      const infoDiv = document.getElementById('reviewInfo');
+      const notesDiv = document.getElementById('doctorNotes');
+      const notesText = document.getElementById('doctorNotesText');
+      
+      statusDiv.style.display = 'block';
+      infoDiv.textContent = `審核時間：${Utils.formatDateTime(analysis.reviewedAt)}`;
+      
+      if (analysis.doctorNotes) {
+        notesDiv.style.display = 'block';
+        notesText.textContent = analysis.doctorNotes;
+      }
+    }
+    
+    // 顯示錯誤
+    function showError() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+    }
+    
+    // 查看歷史
+    function viewHistory() {
+      window.location.href = 'history.html';
+    }
+    
+    // 預約看診
+    function bookAppointment() {
+      window.location.href = 'appointment.html';
+    }
+    
+    // 上傳新影像
+    function uploadNewImage() {
+      window.location.href = 'upload.html';
+    }
+    
+    // 分享報告
+    function shareReport() {
+      Utils.showToast('分享功能開發中', 'info');
+    }
+  </script>
+</body>
+</html>

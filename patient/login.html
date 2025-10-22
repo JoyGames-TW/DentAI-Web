@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="DentAI 智慧口腔健康監測平台 - 患者登入">
+  <title>登入 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 0;
+    }
+    
+    .login-header {
+      padding: 40px 24px 24px;
+      text-align: center;
+      color: white;
+    }
+    
+    .login-logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    
+    .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .login-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    .login-form-container {
+      background: white;
+      border-radius: 32px 32px 0 0;
+      padding: 32px 24px;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+      /* 讓表單區域寬度隨內容變化，滾動由 .app-content 處理 */
+      max-height: calc(100vh - 160px);
+      overflow: auto;
+    }
+    
+    .demo-info {
+      background: #EFF6FF;
+      border: 2px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .demo-info-title {
+      font-weight: 600;
+      color: #1E40AF;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .demo-credentials {
+      font-size: 14px;
+      color: #1E40AF;
+      line-height: 1.6;
+    }
+    
+    .demo-credentials code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .login-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: #F3F4F6;
+      padding: 4px;
+      border-radius: 12px;
+    }
+    
+    .login-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .login-tab.active {
+      background: white;
+      color: #3B82F6;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .forgot-password {
+      text-align: right;
+      margin-top: -8px;
+      margin-bottom: 16px;
+    }
+    
+    .forgot-password a {
+      font-size: 14px;
+      color: #3B82F6;
+      text-decoration: none;
+    }
+    
+    .divider {
+      text-align: center;
+      margin: 24px 0;
+      position: relative;
+    }
+    
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #E5E7EB;
+    }
+    
+    .divider span {
+      background: white;
+      padding: 0 16px;
+      position: relative;
+      color: #9CA3AF;
+      font-size: 14px;
+    }
+    
+    .register-link {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: #6B7280;
+    }
+    
+    .register-link a {
+      color: #3B82F6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="login-container">
+      <!-- 頂部 Logo 區域 -->
+      <div class="login-header fade-in">
+        <div class="login-logo">🦷</div>
+        <h1 class="login-title">DentAI</h1>
+        <p class="login-subtitle">智慧口腔健康監測平台</p>
+      </div>
+      
+      <!-- 登入表單區域 -->
+      <div class="login-form-container slide-up">
+        <!-- Demo 資訊 -->
+        <div class="demo-info">
+          <div class="demo-info-title">
+            <span>ℹ️</span>
+            <span>Demo 測試帳號</span>
+          </div>
+          <div class="demo-credentials">
+            <div><strong>患者帳號:</strong> <code>patient@demo.com</code></div>
+            <div><strong>醫師帳號:</strong> <code>doctor@demo.com</code></div>
+            <div><strong>統一密碼:</strong> <code>demo123</code></div>
+          </div>
+        </div>
+        
+        <!-- 登入類型切換 -->
+        <div class="login-tabs">
+          <button class="login-tab active" data-type="patient">
+            👤 患者登入
+          </button>
+          <button class="login-tab" data-type="doctor">
+            👨‍⚕️ 醫師登入
+          </button>
+        </div>
+        
+        <!-- 登入表單 -->
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              class="form-input" 
+              placeholder="請輸入 Email"
+              required
+              autocomplete="email"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="password">密碼</label>
+            <input 
+              type="password" 
+              id="password" 
+              class="form-input" 
+              placeholder="請輸入密碼"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+          
+          <div class="forgot-password">
+            <a href="#" id="forgotPasswordLink">忘記密碼？</a>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            登入
+          </button>
+        </form>
+        
+        <div class="divider">
+          <span>或</span>
+        </div>
+        
+        <!-- 快速登入按鈕 -->
+        <button id="quickLoginPatient" class="btn btn-secondary btn-block" style="margin-bottom: 12px;">
+          🚀 快速登入（患者）
+        </button>
+        
+        <button id="quickLoginDoctor" class="btn btn-secondary btn-block">
+          🚀 快速登入（醫師）
+        </button>
+        
+        <div class="register-link">
+          還沒有帳號？<a href="#" id="registerLink">立即註冊</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script>
+    // 登入類型切換
+    const loginTabs = document.querySelectorAll('.login-tab');
+    let currentLoginType = 'patient';
+    
+    loginTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        loginTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentLoginType = tab.dataset.type;
+        
+        // 更新 Email 欄位的提示
+        const emailInput = document.getElementById('email');
+        emailInput.value = '';
+        emailInput.placeholder = currentLoginType === 'patient' 
+          ? '請輸入患者 Email' 
+          : '請輸入醫師 Email';
+      });
+    });
+    
+    // 登入表單處理
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        Utils.showToast('請填寫完整資料', 'warning');
+        return;
+      }
+      
+      if (!Utils.validateEmail(email)) {
+        Utils.showToast('Email 格式不正確', 'error');
+        return;
+      }
+      
+      Utils.showLoading('登入中...');
+      
+      // 模擬登入延遲
+      await Utils.sleep(1000);
+      
+      const result = UserManager.login(email, password);
+      
+      Utils.hideLoading();
+      
+      if (result.success) {
+        // 檢查使用者類型是否匹配
+        if (result.user.type !== currentLoginType) {
+          Utils.showToast(`此帳號為${result.user.type === 'patient' ? '患者' : '醫師'}帳號，請切換登入類型`, 'warning');
+          return;
+        }
+        
+        Utils.showToast(`歡迎回來，${result.user.name}！`, 'success');
+        
+        // 跳轉到對應的首頁
+        setTimeout(() => {
+          if (result.user.type === 'patient') {
+            window.location.href = 'home.html';
+          } else {
+            window.location.href = '../doctor/dashboard.html';
+          }
+        }, 1000);
+      } else {
+        Utils.showToast(result.message || '登入失敗', 'error');
+      }
+    });
+    
+    // 快速登入（患者）
+    document.getElementById('quickLoginPatient').addEventListener('click', () => {
+      // 先切換標籤，再填入表單（避免被標籤點擊事件清空）
+      loginTabs[0].click();
+      document.getElementById('email').value = 'patient@demo.com';
+      document.getElementById('password').value = 'demo123';
+      Utils.showToast('已填入測試帳號，請點擊登入', 'info');
+    });
+    
+    // 快速登入（醫師）
+    document.getElementById('quickLoginDoctor').addEventListener('click', () => {
+      // 先切換標籤，再填入表單（避免被標籤點擊事件清空）
+      loginTabs[1].click();
+      document.getElementById('email').value = 'doctor@demo.com';
+      document.getElementById('password').value = 'demo123';
+      Utils.showToast('已填入測試帳號，請點擊登入', 'info');
+    });
+    
+    // 忘記密碼
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      Utils.showToast('這是 Demo 版本，請使用測試帳號登入', 'info');
+    });
+    
+    // 註冊連結
+    document.getElementById('registerLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      Utils.showToast('註冊功能將在未來版本開放', 'info');
+    });
+    
+    // 檢查是否已登入
+    if (UserManager.isLoggedIn()) {
+      const user = UserManager.getCurrentUser();
+      Utils.showToast(`您已登入（${user.name}），即將跳轉...`, 'info');
+      setTimeout(() => {
+        if (user.type === 'patient') {
+          window.location.href = 'home.html';
+        } else {
+          window.location.href = '../doctor/dashboard.html';
+        }
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

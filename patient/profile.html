@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>個人資料 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .profile-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px 24px;
+      border-radius: 0 0 24px 24px;
+      margin: -16px -16px 24px -16px;
+      text-align: center;
+    }
+    
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin: 0 auto 16px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .profile-email {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .menu-section {
+      margin-bottom: 24px;
+    }
+    
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    
+    .menu-group {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    
+    .menu-item:hover {
+      background: #F9FAFB;
+    }
+    
+    .menu-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .menu-item-icon {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F3F4F6;
+      border-radius: 10px;
+    }
+    
+    .menu-item-text {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .menu-item-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #111827;
+    }
+    
+    .menu-item-subtitle {
+      font-size: 13px;
+      color: #9CA3AF;
+    }
+    
+    .menu-item-arrow {
+      font-size: 20px;
+      color: #D1D5DB;
+    }
+    
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #3B82F6;
+      margin-bottom: 4px;
+    }
+    
+    .stat-card-label {
+      font-size: 12px;
+      color: #6B7280;
+    }
+    
+    .logout-button {
+      width: 100%;
+      padding: 16px;
+      background: white;
+      border: 2px solid #EF4444;
+      border-radius: 12px;
+      color: #EF4444;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      margin-top: 24px;
+    }
+    
+    .logout-button:hover {
+      background: #EF4444;
+      color: white;
+    }
+    
+    .version-info {
+      text-align: center;
+      padding: 24px 0;
+      color: #9CA3AF;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header">
+      <div style="width: 44px;"></div>
+      <h1 class="header-title">個人中心</h1>
+      <button class="header-back-btn" onclick="editProfile()" style="font-size: 20px;">⚙️</button>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 個人資料頭部 -->
+      <div class="profile-header fade-in">
+        <div class="avatar" id="avatarIcon">👤</div>
+        <div class="profile-name" id="userName">載入中...</div>
+        <div class="profile-email" id="userEmail">--</div>
+      </div>
+      
+      <!-- 統計卡片 -->
+      <div class="stats-cards slide-up">
+        <div class="stat-card">
+          <div class="stat-card-value" id="totalRecords">0</div>
+          <div class="stat-card-label">檢測次數</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-value" id="avgScore">--</div>
+          <div class="stat-card-label">平均評分</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-value" id="memberDays">0</div>
+          <div class="stat-card-label">使用天數</div>
+        </div>
+      </div>
+      
+      <!-- 帳號設定 -->
+      <div class="menu-section">
+        <div class="section-label">帳號設定</div>
+        <div class="menu-group">
+          <div class="menu-item" onclick="editPersonalInfo()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">👤</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">個人資料</div>
+                <div class="menu-item-subtitle">編輯姓名、生日等資訊</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="changePassword()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">🔒</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">變更密碼</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="notificationSettings()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">🔔</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">通知設定</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 資料管理 -->
+      <div class="menu-section">
+        <div class="section-label">資料管理</div>
+        <div class="menu-group">
+          <div class="menu-item" onclick="exportData()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">📊</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">匯出健康報告</div>
+                <div class="menu-item-subtitle">下載所有檢測記錄</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="clearCache()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">🗑️</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">清除快取</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 更多功能 -->
+      <div class="menu-section">
+        <div class="section-label">更多</div>
+        <div class="menu-group">
+          <div class="menu-item" onclick="openHelp()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">❓</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">使用說明</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="openPrivacy()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">🔐</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">隱私權政策</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="contactUs()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">📧</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">聯絡我們</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+          
+          <div class="menu-item" onclick="aboutApp()">
+            <div class="menu-item-left">
+              <div class="menu-item-icon">ℹ️</div>
+              <div class="menu-item-text">
+                <div class="menu-item-title">關於 DentAI</div>
+                <div class="menu-item-subtitle">版本 1.0.0</div>
+              </div>
+            </div>
+            <div class="menu-item-arrow">›</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 登出按鈕 -->
+      <button class="logout-button" onclick="handleLogout()">
+        登出帳號
+      </button>
+      
+      <!-- 版本資訊 -->
+      <div class="version-info">
+        DentAI v1.0.0 Prototype<br>
+        © 2025 智慧口腔健康監測平台
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="home.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>首頁</div>
+      </a>
+      <a href="upload.html" class="nav-item">
+        <div class="nav-icon">📸</div>
+        <div>上傳</div>
+      </a>
+      <a href="history.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>記錄</div>
+      </a>
+      <a href="profile.html" class="nav-item active">
+        <div class="nav-icon">👤</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    
+    // 載入使用者資料
+    function loadUserData() {
+      // 顯示基本資料
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userEmail').textContent = currentUser.email;
+      
+      // 根據性別設定頭像
+      const avatarIcons = {
+        male: '👨',
+        female: '👩',
+        other: '👤'
+      };
+      document.getElementById('avatarIcon').textContent = avatarIcons[currentUser.gender] || '👤';
+      
+      // 載入統計數據
+      loadStats();
+    }
+    
+    // 載入統計數據
+    function loadStats() {
+      const analyses = AnalysisManager.getUserAnalyses(currentUser.id);
+      
+      // 檢測次數
+      document.getElementById('totalRecords').textContent = analyses.length;
+      
+      // 平均評分
+      if (analyses.length > 0) {
+        const avgScore = (analyses.reduce((sum, a) => sum + a.riskScore, 0) / analyses.length).toFixed(1);
+        document.getElementById('avgScore').textContent = avgScore;
+      } else {
+        document.getElementById('avgScore').textContent = '--';
+      }
+      
+      // 使用天數
+      const registeredDate = new Date(currentUser.registeredAt);
+      const today = new Date();
+      const daysDiff = Math.floor((today - registeredDate) / (1000 * 60 * 60 * 24));
+      document.getElementById('memberDays').textContent = daysDiff;
+    }
+    
+    // 編輯個人資料
+    function editPersonalInfo() {
+      Utils.showToast('此功能開發中', 'info');
+    }
+    
+    // 編輯設定
+    function editProfile() {
+      Utils.showToast('設定功能開發中', 'info');
+    }
+    
+    // 變更密碼
+    function changePassword() {
+      Utils.showToast('密碼變更功能開發中', 'info');
+    }
+    
+    // 通知設定
+    function notificationSettings() {
+      Utils.showToast('通知設定功能開發中', 'info');
+    }
+    
+    // 匯出資料
+    function exportData() {
+      const analyses = AnalysisManager.getUserAnalyses(currentUser.id);
+      
+      if (analyses.length === 0) {
+        Utils.showToast('目前沒有可匯出的資料', 'warning');
+        return;
+      }
+      
+      // 建立匯出資料
+      const exportContent = {
+        user: {
+          name: currentUser.name,
+          email: currentUser.email
+        },
+        exportDate: new Date().toISOString(),
+        totalRecords: analyses.length,
+        analyses: analyses.map(a => ({
+          date: a.analyzedAt,
+          riskScore: a.riskScore,
+          riskLevel: a.riskLevelName,
+          anomalyCount: a.anomalies.length,
+          recommendation: a.recommendation
+        }))
+      };
+      
+      // 轉換為 JSON 並下載
+      const dataStr = JSON.stringify(exportContent, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `DentAI_Report_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      
+      Utils.showToast('報告匯出成功', 'success');
+    }
+    
+    // 清除快取
+    function clearCache() {
+      Utils.showConfirm(
+        '確定要清除所有快取資料嗎？這不會刪除您的檢測記錄。',
+        () => {
+          // 這裡可以清除某些暫存資料
+          Utils.showToast('快取已清除', 'success');
+        }
+      );
+    }
+    
+    // 使用說明
+    function openHelp() {
+      Utils.showToast('使用說明：\n1. 點擊「上傳影像」開始檢測\n2. 依照指引拍攝口腔照片\n3. 系統會自動分析並生成報告\n4. 定期檢測以追蹤健康變化', 'info');
+    }
+    
+    // 隱私權政策
+    function openPrivacy() {
+      Utils.showToast('隱私權政策\n\n本系統為 Demo 版本，所有資料儲存於您的裝置中，不會上傳至伺服器。請放心使用。', 'info');
+    }
+    
+    // 聯絡我們
+    function contactUs() {
+      Utils.showToast('聯絡信箱：support@dentai.demo.com', 'info');
+    }
+    
+    // 關於應用程式
+    function aboutApp() {
+      Utils.showToast('DentAI v1.0.0\n\n智慧口腔健康監測平台\n使用 AI 技術協助居家口腔健康追蹤\n\n© 2025 All rights reserved', 'info');
+    }
+    
+    // 登出
+    function handleLogout() {
+      Utils.showConfirm(
+        '確定要登出嗎？',
+        () => {
+          UserManager.logout();
+          Utils.showToast('已登出', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1000);
+        }
+      );
+    }
+    
+    // 頁面載入時執行
+    loadUserData();
+  </script>
+</body>
+</html>

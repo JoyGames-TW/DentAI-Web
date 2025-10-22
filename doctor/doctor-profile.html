@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>醫師個人中心 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .profile-header {
+      background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%);
+      color: white;
+      padding: 32px 24px;
+      margin: -16px -16px 24px -16px;
+      border-radius: 0 0 24px 24px;
+      text-align: center;
+    }
+    
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 16px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .profile-specialty {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+    
+    .profile-hospital {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-box {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-box-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #3B82F6;
+      margin-bottom: 4px;
+    }
+    
+    .stat-box-label {
+      font-size: 12px;
+      color: #6B7280;
+    }
+    
+    .menu-section {
+      margin-bottom: 20px;
+    }
+    
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    
+    .menu-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    
+    .menu-item:hover {
+      background: #F9FAFB;
+    }
+    
+    .menu-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+    }
+    
+    .menu-content {
+      flex: 1;
+    }
+    
+    .menu-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+    
+    .menu-subtitle {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    
+    .menu-arrow {
+      color: #9CA3AF;
+      font-size: 20px;
+    }
+    
+    .logout-button {
+      width: 100%;
+      padding: 16px;
+      background: white;
+      color: #EF4444;
+      border: 2px solid #EF4444;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      margin-top: 20px;
+    }
+    
+    .logout-button:hover {
+      background: #FEE2E2;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header" style="background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%); border: none; color: white;">
+      <div style="width: 44px;"></div>
+      <h1 class="header-title" style="color: white;">個人中心</h1>
+      <div style="width: 44px;"></div>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 個人資訊頭部 -->
+      <div class="profile-header fade-in">
+        <div class="profile-avatar">👨‍⚕️</div>
+        <div class="profile-name" id="doctorName">載入中...</div>
+        <div class="profile-specialty" id="doctorSpecialty">--</div>
+        <div class="profile-hospital" id="doctorHospital">--</div>
+      </div>
+      
+      <!-- 統計數據 -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-box-value" id="todayReviewed">0</div>
+          <div class="stat-box-label">今日審核</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value" id="totalReviewed">0</div>
+          <div class="stat-box-label">總審核數</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value" id="totalPatients">0</div>
+          <div class="stat-box-label">管理患者</div>
+        </div>
+      </div>
+      
+      <!-- 工作相關 -->
+      <div class="menu-section">
+        <div class="section-label">工作管理</div>
+        <div class="menu-card">
+          <div class="menu-item" onclick="window.location.href='dashboard.html'">
+            <div class="menu-icon" style="background: #DBEAFE;">📊</div>
+            <div class="menu-content">
+              <div class="menu-title">工作儀表板</div>
+              <div class="menu-subtitle">查看待審核案件</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="window.location.href='review.html'">
+            <div class="menu-icon" style="background: #E0E7FF;">📝</div>
+            <div class="menu-content">
+              <div class="menu-title">審核中心</div>
+              <div class="menu-subtitle">審核患者病例</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="window.location.href='patients.html'">
+            <div class="menu-icon" style="background: #DBEAFE;">👥</div>
+            <div class="menu-content">
+              <div class="menu-title">患者管理</div>
+              <div class="menu-subtitle">管理所有患者</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 資料與報表 -->
+      <div class="menu-section">
+        <div class="section-label">數據分析</div>
+        <div class="menu-card">
+          <div class="menu-item" onclick="exportReviewData()">
+            <div class="menu-icon" style="background: #D1FAE5;">📊</div>
+            <div class="menu-content">
+              <div class="menu-title">審核統計</div>
+              <div class="menu-subtitle">查看審核數據報表</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="exportPatientData()">
+            <div class="menu-icon" style="background: #FEF3C7;">💾</div>
+            <div class="menu-content">
+              <div class="menu-title">匯出數據</div>
+              <div class="menu-subtitle">下載患者資料</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 設定 -->
+      <div class="menu-section">
+        <div class="section-label">設定</div>
+        <div class="menu-card">
+          <div class="menu-item" onclick="Utils.showToast('功能開發中', 'info')">
+            <div class="menu-icon" style="background: #E5E7EB;">👤</div>
+            <div class="menu-content">
+              <div class="menu-title">個人資料</div>
+              <div class="menu-subtitle">編輯個人資訊</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="Utils.showToast('功能開發中', 'info')">
+            <div class="menu-icon" style="background: #FEE2E2;">🔒</div>
+            <div class="menu-content">
+              <div class="menu-title">修改密碼</div>
+              <div class="menu-subtitle">更改登入密碼</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="Utils.showToast('功能開發中', 'info')">
+            <div class="menu-icon" style="background: #FEF3C7;">🔔</div>
+            <div class="menu-content">
+              <div class="menu-title">通知設定</div>
+              <div class="menu-subtitle">管理通知偏好</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 關於 -->
+      <div class="menu-section">
+        <div class="section-label">其他</div>
+        <div class="menu-card">
+          <div class="menu-item" onclick="Utils.showToast('版本：1.0.0 (Beta)', 'info')">
+            <div class="menu-icon" style="background: #E0E7FF;">ℹ️</div>
+            <div class="menu-content">
+              <div class="menu-title">關於 DentAI</div>
+              <div class="menu-subtitle">版本資訊與說明</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+          
+          <div class="menu-item" onclick="Utils.showToast('功能開發中', 'info')">
+            <div class="menu-icon" style="background: #DBEAFE;">❓</div>
+            <div class="menu-content">
+              <div class="menu-title">幫助中心</div>
+              <div class="menu-subtitle">常見問題與支援</div>
+            </div>
+            <div class="menu-arrow">→</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 登出按鈕 -->
+      <button class="logout-button" onclick="handleLogout()">
+        🚪 登出系統
+      </button>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="dashboard.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>儀表板</div>
+      </a>
+      <a href="review.html" class="nav-item">
+        <div class="nav-icon">📋</div>
+        <div>審核</div>
+      </a>
+      <a href="patients.html" class="nav-item">
+        <div class="nav-icon">👥</div>
+        <div>患者</div>
+      </a>
+      <a href="doctor-profile.html" class="nav-item active">
+        <div class="nav-icon">👨‍⚕️</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = '../patient/login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    
+    // 載入醫師資訊
+    function loadDoctorInfo() {
+      document.getElementById('doctorName').textContent = currentUser.name;
+      document.getElementById('doctorSpecialty').textContent = currentUser.specialty;
+      document.getElementById('doctorHospital').textContent = currentUser.hospital;
+    }
+    
+    // 載入統計數據
+    function loadStats() {
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      
+      // 今日審核數
+      const today = new Date().toDateString();
+      const todayReviewed = allAnalyses.filter(a => 
+        a.status === 'reviewed' && 
+        a.reviewedBy === currentUser.id &&
+        a.reviewedAt && 
+        new Date(a.reviewedAt).toDateString() === today
+      ).length;
+      document.getElementById('todayReviewed').textContent = todayReviewed;
+      
+      // 總審核數
+      const totalReviewed = allAnalyses.filter(a => 
+        a.status === 'reviewed' && 
+        a.reviewedBy === currentUser.id
+      ).length;
+      document.getElementById('totalReviewed').textContent = totalReviewed;
+      
+      // 管理患者數（有審核記錄的患者）
+      const patientIds = new Set(
+        allAnalyses
+          .filter(a => a.reviewedBy === currentUser.id)
+          .map(a => a.userId)
+      );
+      document.getElementById('totalPatients').textContent = patientIds.size;
+    }
+    
+    // 匯出審核數據
+    function exportReviewData() {
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      const myReviews = allAnalyses.filter(a => 
+        a.status === 'reviewed' && 
+        a.reviewedBy === currentUser.id
+      );
+      
+      const statsData = {
+        doctor: {
+          id: currentUser.id,
+          name: currentUser.name,
+          specialty: currentUser.specialty,
+          hospital: currentUser.hospital
+        },
+        summary: {
+          totalReviews: myReviews.length,
+          highRiskCases: myReviews.filter(r => r.riskLevel === 'high').length,
+          mediumRiskCases: myReviews.filter(r => r.riskLevel === 'medium').length,
+          lowRiskCases: myReviews.filter(r => r.riskLevel === 'low').length
+        },
+        reviews: myReviews.map(r => ({
+          id: r.id,
+          patientId: r.userId,
+          patientName: r.userName,
+          riskLevel: r.riskLevelName,
+          riskScore: r.riskScore,
+          anomalies: r.anomalies.length,
+          reviewedAt: r.reviewedAt,
+          doctorNotes: r.doctorNotes
+        })),
+        exportedAt: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(statsData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `審核統計_${currentUser.name}_${Utils.formatDateTime(new Date()).replace(/[/:]/g, '-')}.json`;
+      a.click();
+      
+      Utils.showToast('審核統計已匯出', 'success');
+    }
+    
+    // 匯出患者數據
+    function exportPatientData() {
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      
+      // 按患者分組
+      const patientMap = new Map();
+      allAnalyses.forEach(analysis => {
+        if (!patientMap.has(analysis.userId)) {
+          patientMap.set(analysis.userId, {
+            id: analysis.userId,
+            name: analysis.userName,
+            records: []
+          });
+        }
+        patientMap.get(analysis.userId).records.push({
+          id: analysis.id,
+          date: analysis.analyzedAt,
+          riskLevel: analysis.riskLevelName,
+          riskScore: analysis.riskScore,
+          anomalies: analysis.anomalies.length,
+          status: analysis.status,
+          reviewed: analysis.status === 'reviewed',
+          reviewedBy: analysis.reviewedByName,
+          reviewedAt: analysis.reviewedAt
+        });
+      });
+      
+      const patientsData = {
+        exportedBy: currentUser.name,
+        totalPatients: patientMap.size,
+        patients: Array.from(patientMap.values()).map(p => ({
+          ...p,
+          totalRecords: p.records.length,
+          highRiskRecords: p.records.filter(r => r.riskLevel === '高風險').length,
+          avgRiskScore: Math.round(
+            p.records.reduce((sum, r) => sum + r.riskScore, 0) / p.records.length
+          )
+        })),
+        exportedAt: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(patientsData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `患者數據_${Utils.formatDateTime(new Date()).replace(/[/:]/g, '-')}.json`;
+      a.click();
+      
+      Utils.showToast('患者數據已匯出', 'success');
+    }
+    
+    // 登出
+    function handleLogout() {
+      Utils.showConfirm(
+        '確定要登出嗎？',
+        () => {
+          UserManager.logout();
+          Utils.showToast('已登出', 'success');
+          setTimeout(() => {
+            window.location.href = '../patient/login.html';
+          }, 1000);
+        }
+      );
+    }
+    
+    // 初始化
+    loadDoctorInfo();
+    loadStats();
+  </script>
+</body>
+</html>

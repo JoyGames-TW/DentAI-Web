@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>醫師儀表板 - DentAI</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .doctor-header {
+      background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 0 0 24px 24px;
+      margin: -16px -16px 24px -16px;
+    }
+    
+    .doctor-welcome {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .doctor-info h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .doctor-info p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .doctor-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    
+    .quick-stat {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .quick-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .quick-stat-label {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    
+    .priority-section {
+      margin-bottom: 24px;
+    }
+    
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .priority-badge {
+      background: #FEE2E2;
+      color: #991B1B;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 10px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .case-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      border-left: 4px solid transparent;
+    }
+    
+    .case-card.high-risk {
+      border-left-color: #EF4444;
+    }
+    
+    .case-card.medium-risk {
+      border-left-color: #F59E0B;
+    }
+    
+    .case-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .case-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    
+    .case-patient {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .patient-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .patient-info {
+      flex: 1;
+    }
+    
+    .patient-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .patient-meta {
+      font-size: 13px;
+      color: #6B7280;
+    }
+    
+    .case-time {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    
+    .case-details {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .detail-chip {
+      background: #F3F4F6;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      color: #374151;
+      font-weight: 500;
+    }
+    
+    .case-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #F3F4F6;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    
+    .action-btn.primary {
+      background: #3B82F6;
+      color: white;
+    }
+    
+    .action-btn.secondary {
+      background: #F3F4F6;
+      color: #374151;
+    }
+    
+    .action-btn:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導覽 -->
+    <header class="app-header" style="background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%); border: none; color: white;">
+      <div style="width: 44px;"></div>
+      <h1 class="header-title" style="color: white;">醫師工作台</h1>
+      <button class="header-back-btn" onclick="handleLogout()" style="color: white; font-size: 20px;">🚪</button>
+    </header>
+    
+    <!-- 內容區域 -->
+    <div class="app-content">
+      <!-- 醫師資訊頭部 -->
+      <div class="doctor-header fade-in">
+        <div class="doctor-welcome">
+          <div class="doctor-info">
+            <h2 id="doctorName">載入中...</h2>
+            <p id="doctorSpecialty">--</p>
+          </div>
+          <div class="doctor-avatar">👨‍⚕️</div>
+        </div>
+        
+        <div class="quick-stats">
+          <div class="quick-stat">
+            <div class="quick-stat-value" id="pendingCount">0</div>
+            <div class="quick-stat-label">待審核</div>
+          </div>
+          <div class="quick-stat">
+            <div class="quick-stat-value" id="highRiskCount">0</div>
+            <div class="quick-stat-label">高風險</div>
+          </div>
+          <div class="quick-stat">
+            <div class="quick-stat-value" id="todayReviewed">0</div>
+            <div class="quick-stat-label">今日審核</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 高風險待審核 -->
+      <div class="priority-section" id="highRiskSection">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🚨</span>
+            <span>高風險待審核</span>
+            <span class="priority-badge" id="urgentBadge">緊急</span>
+          </div>
+        </div>
+        <div id="highRiskCases">
+          <!-- 動態載入 -->
+        </div>
+      </div>
+      
+      <!-- 其他待審核 -->
+      <div class="priority-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span>📋</span>
+            <span>其他待審核</span>
+          </div>
+          <a href="review.html" style="font-size: 14px; color: #3B82F6; text-decoration: none;">
+            查看全部 →
+          </a>
+        </div>
+        <div id="otherCases">
+          <!-- 動態載入 -->
+        </div>
+      </div>
+      
+      <!-- 空狀態 -->
+      <div id="emptyState" style="display: none; text-align: center; padding: 60px 20px; color: #9CA3AF;">
+        <div style="font-size: 80px; margin-bottom: 16px;">✨</div>
+        <div style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+          太棒了！沒有待審核案件
+        </div>
+        <div style="font-size: 14px;">
+          目前所有病例都已完成審核
+        </div>
+      </div>
+    </div>
+    
+    <!-- 底部導覽 -->
+    <nav class="bottom-nav">
+      <a href="dashboard.html" class="nav-item active">
+        <div class="nav-icon">📊</div>
+        <div>儀表板</div>
+      </a>
+      <a href="review.html" class="nav-item">
+        <div class="nav-icon">📋</div>
+        <div>審核</div>
+      </a>
+      <a href="patients.html" class="nav-item">
+        <div class="nav-icon">👥</div>
+        <div>患者</div>
+      </a>
+      <a href="doctor-profile.html" class="nav-item">
+        <div class="nav-icon">👨‍⚕️</div>
+        <div>我的</div>
+      </a>
+    </nav>
+  </div>
+  
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/ai-engine.js"></script>
+  <script>
+    // 檢查登入狀態
+    if (!UserManager.isLoggedIn()) {
+      window.location.href = '../patient/login.html';
+    }
+    
+    const currentUser = UserManager.getCurrentUser();
+    
+    // 如果不是醫師，跳轉到患者端
+    if (currentUser.type !== 'doctor') {
+      window.location.href = '../patient/home.html';
+    }
+    
+    // 載入醫師資訊
+    function loadDoctorInfo() {
+      document.getElementById('doctorName').textContent = currentUser.name;
+      document.getElementById('doctorSpecialty').textContent = currentUser.specialty + ' | ' + currentUser.hospital;
+    }
+    
+    // 載入統計數據
+    function loadStats() {
+      const pendingCases = AnalysisManager.getPendingReviews();
+      const highRiskCases = pendingCases.filter(c => c.riskLevel === 'high');
+      
+      document.getElementById('pendingCount').textContent = pendingCases.length;
+      document.getElementById('highRiskCount').textContent = highRiskCases.length;
+      
+      // 計算今日審核數（模擬）
+      const today = new Date().toDateString();
+      const allAnalyses = StorageManager.get(StorageManager.KEYS.ANALYSES) || [];
+      const todayReviewed = allAnalyses.filter(a => 
+        a.status === 'reviewed' && 
+        a.reviewedAt && 
+        new Date(a.reviewedAt).toDateString() === today
+      ).length;
+      document.getElementById('todayReviewed').textContent = todayReviewed;
+      
+      // 如果沒有待審核案件
+      if (pendingCases.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      // 顯示案件列表
+      displayCases(highRiskCases, 'high');
+      displayCases(pendingCases.filter(c => c.riskLevel !== 'high'), 'other');
+    }
+    
+    // 顯示案件列表
+    function displayCases(cases, type) {
+      const container = type === 'high' 
+        ? document.getElementById('highRiskCases')
+        : document.getElementById('otherCases');
+      
+      if (cases.length === 0) {
+        if (type === 'high') {
+          document.getElementById('highRiskSection').style.display = 'none';
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #9CA3AF; font-size: 14px;">
+              沒有其他待審核案件
+            </div>
+          `;
+        }
+        return;
+      }
+      
+      container.innerHTML = cases.slice(0, type === 'high' ? 10 : 3).map((caseData, index) => {
+        const colors = {
+          high: '#EF4444',
+          medium: '#F59E0B',
+          low: '#10B981'
+        };
+        
+        const icons = {
+          high: '⚠️',
+          medium: '⚡',
+          low: '✅'
+        };
+        
+        return `
+          <div class="case-card ${caseData.riskLevel}-risk" 
+               style="animation: slideUp 0.3s ease-out ${index * 0.05}s both;">
+            <div class="case-header">
+              <div class="case-patient">
+                <div class="patient-avatar">👤</div>
+                <div class="patient-info">
+                  <div class="patient-name">${caseData.userName}</div>
+                  <div class="patient-meta">${Utils.getRelativeTime(caseData.analyzedAt)}</div>
+                </div>
+              </div>
+              <span class="badge badge-${caseData.riskLevel}">
+                ${icons[caseData.riskLevel]} ${caseData.riskLevelName}
+              </span>
+            </div>
+            
+            <div class="case-details">
+              <div class="detail-chip">評分 ${caseData.riskScore}</div>
+              <div class="detail-chip">${caseData.anomalies.length} 項異常</div>
+              <div class="detail-chip" style="color: ${colors[caseData.riskLevel]};">
+                ${caseData.anomalies.filter(a => a.type === 'caries' || a.type === 'recession').length} 高風險
+              </div>
+            </div>
+            
+            <div class="case-actions">
+              <button class="action-btn primary" onclick="reviewCase('${caseData.id}')">
+                立即審核
+              </button>
+              <button class="action-btn secondary" onclick="viewDetails('${caseData.id}')">
+                查看詳情
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 顯示空狀態
+    function showEmptyState() {
+      document.getElementById('highRiskSection').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+    
+    // 審核案件
+    function reviewCase(analysisId) {
+      window.location.href = `review.html?id=${analysisId}`;
+    }
+    
+    // 查看詳情
+    function viewDetails(analysisId) {
+      window.location.href = `review.html?id=${analysisId}&mode=view`;
+    }
+    
+    // 登出
+    function handleLogout() {
+      Utils.showConfirm(
+        '確定要登出嗎？',
+        () => {
+          UserManager.logout();
+          Utils.showToast('已登出', 'success');
+          setTimeout(() => {
+            window.location.href = '../patient/login.html';
+          }, 1000);
+        }
+      );
+    }
+    
+    // 頁面載入時執行
+    loadDoctorInfo();
+    loadStats();
+    
+    // 每 30 秒刷新一次
+    setInterval(() => {
+      loadStats();
+    }, 30000);
+  </script>
+</body>
+</html>
